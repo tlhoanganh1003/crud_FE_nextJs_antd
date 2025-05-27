@@ -5,6 +5,7 @@ import { Form, Input, Radio } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { mockNhomTaiSanList } from '@/data/nhomTaiSan';
 import dayjs from 'dayjs';
+import { giaTriSchema, YupValidator } from '../schema/schema';
 
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
@@ -18,13 +19,14 @@ const Giatri: React.FC<GiaTriProps> = () => {
   const [localData, setLocalData] = useState<any>(null);
   const { registerForm } = useSaveContext();
   const { sharedData } = useSaveContext();
+    const yupSync = YupValidator(giaTriSchema, form.getFieldsValue);
   const tyLeHaoMon = Form.useWatch('tyLeHaoMon', form)
   const giaTri = Form.useWatch('giaTri', form)
   const tyLeKhauHao = Form.useWatch('tyLeKhauHao', form)
 
-  useEffect(() => {
-    registerForm("GiaTri", form);
-  }, [])
+     useEffect(() => {
+        registerForm("GiaTri", form, validateOnly, handleSubmit);
+      }, []);
 
   //reset radio nếu ngày đưa vào sử dụng bị đổi thành dạng không hợp lệ 
   useEffect(() => {
@@ -141,6 +143,17 @@ const Giatri: React.FC<GiaTriProps> = () => {
 
   }, [tyLeHaoMon, giaTri, tyLeKhauHao, value])
 
+  const validateOnly = async () => {
+    try {
+      const values = await form.validateFields();
+      console.log("validate from giaTri:", values);
+      return true
+    } catch (err) {
+      console.log("Validation failed:", err);
+      return false
+    }
+  }
+
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
@@ -155,7 +168,6 @@ const Giatri: React.FC<GiaTriProps> = () => {
     <>
       <Form
         form={form}
-
         onFinish={handleSubmit}
         labelCol={{ span: 4 }}
 
@@ -181,6 +193,7 @@ const Giatri: React.FC<GiaTriProps> = () => {
               labelCol={{ span: 8 }}
               wrapperCol={{ span: 16 }}
               labelAlign="left"
+              rules={[yupSync]}
             >
               <Input
                 type="number"
@@ -217,7 +230,7 @@ const Giatri: React.FC<GiaTriProps> = () => {
                 <Input
                   type="Number"
                   placeholder="nhập giá trị"
-                  onChange={(e) =>
+                  onBlur={(e) =>
                     tinhGiaTri("nguonNganSach", Number(e.target.value || 0))
                   }
                 />
@@ -248,9 +261,10 @@ const Giatri: React.FC<GiaTriProps> = () => {
                 <Input
                   type="Number"
                   placeholder="nhập giá trị"
-                  onChange={(e) =>
+                  onBlur={(e) =>
                     tinhGiaTri("NguonSuNghiep", Number(e.target.value || 0))
                   }
+
                 />
                 <h1 className="text-base">
                   (VNĐ)
@@ -282,7 +296,7 @@ const Giatri: React.FC<GiaTriProps> = () => {
                 <Input
                   type="number"
                   placeholder="nhập giá trị"
-                  onChange={(e) =>
+                  onBlur={(e) =>
                     tinhGiaTri("nguonVienTro", Number(e.target.value || 0))
                   }
                 />
@@ -313,7 +327,7 @@ const Giatri: React.FC<GiaTriProps> = () => {
                 <Input
                   type="number"
                   placeholder="nhập giá trị"
-                  onChange={(e) =>
+                  onBlur={(e) =>
                     tinhGiaTri("nguonKhac", Number(e.target.value || 0))
                   }
                 />
@@ -376,7 +390,6 @@ const Giatri: React.FC<GiaTriProps> = () => {
             </Form.Item>
 
             <Radio.Group
-
               onChange={handleRadioChange}
               value={value}
               name="radiogroup"
@@ -591,6 +604,7 @@ const Giatri: React.FC<GiaTriProps> = () => {
                   labelCol={{ span: 8 }}
                   wrapperCol={{ span: 16 }}
                   labelAlign="left"
+                  rules={[yupSync]}
                 >
 
                   <Input

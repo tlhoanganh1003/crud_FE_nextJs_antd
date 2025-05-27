@@ -6,7 +6,10 @@ import { useSaveContext } from '@/components/SaveContext';
 import { thongTinTaiSanSchema, YupValidator } from '../schema/schema'
 import { countries } from '@/data/diachi'
 import { mockNhomTaiSanList } from '@/data/nhomTaiSan'
+import BoPhanSuDung from './modals/BoPhanSuDung';
 import dayjs from 'dayjs';
+import { boPhanSuDung, mockBoPhanSuDung } from '@/data/boPhanSuDung';
+import CoDat from './modals/CoDat';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface TTTS {
@@ -21,6 +24,15 @@ interface option {
 const ThongTinTaiSan: React.FC<TTTS> = () => {
   const [form] = Form.useForm();
   const [checked, setChecked] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [coDatOpen, setCoDatOpen] = useState(false);
+
+  const [boPhanList, setBoPhanList] = useState<boPhanSuDung[]>(mockBoPhanSuDung);
+
+  const openModal = () => setIsModalOpen(true);
+  const closeModal = () => setIsModalOpen(false);
+  const openCoDatModal = () => setCoDatOpen(true);
+  const closeCoDatModal = () => setCoDatOpen(false);
   const [tinhDropdown, setTinhDropdown] = useState<option[]>([]);
   const [selectedTinh, setSelectedTinh] = useState<number | null>(null);
   const [selectedHuyen, setSelectedHuyen] = useState<number | null>(null);
@@ -36,7 +48,7 @@ const ThongTinTaiSan: React.FC<TTTS> = () => {
   const yupSync = YupValidator(thongTinTaiSanSchema, form.getFieldsValue);
 
   useEffect(() => {
-    registerForm("ThongTinTaiSan", form);
+    registerForm("ThongTinTaiSan", form, validateOnly, handleSubmit);
   }, []);
 
   useEffect(() => {
@@ -101,6 +113,22 @@ const ThongTinTaiSan: React.FC<TTTS> = () => {
   };
 
 
+  const handleThemBoPhanSuDung = (newBoPhan: boPhanSuDung) => {
+    setBoPhanList((prev) => [...prev, newBoPhan]);
+  };
+
+
+  const validateOnly = async () => {
+    try {
+      const values = await form.validateFields();
+      console.log("validate from Thongtintaisan:", values);
+      return true
+    } catch (err) {
+      console.log("Validation failed:", err);
+      return false
+    }
+  };
+
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
@@ -156,7 +184,7 @@ const ThongTinTaiSan: React.FC<TTTS> = () => {
               labelCol={{ span: 10 }}
               wrapperCol={{ span: 24 }}
               name="maDonVi"
-              //rules={[yupSync]}
+              rules={[yupSync]}
               initialValue={"T55002002"}
               className="flex-2"
               labelAlign="left"
@@ -168,7 +196,7 @@ const ThongTinTaiSan: React.FC<TTTS> = () => {
             </Form.Item>
             <Form.Item
               name="tenDonVi"
-              //rules={[yupSync]}
+              rules={[yupSync]}
               initialValue={"Nhà khách văn phòng UBND tỉnh Thái Nguyên"}
               className="flex-[3]"
             >
@@ -190,7 +218,7 @@ const ThongTinTaiSan: React.FC<TTTS> = () => {
               labelCol={{ span: 10 }}
               wrapperCol={{ span: 24 }}
               name="maTaiSan"
-              //rules={[yupSync]}
+              rules={[yupSync]}
               className="flex-2"
               labelAlign="left"
             >
@@ -200,7 +228,7 @@ const ThongTinTaiSan: React.FC<TTTS> = () => {
             </Form.Item>
             <Form.Item
               name="tenTaiSan"
-              //rules={[yupSync]}
+              rules={[yupSync]}
               className="flex-[3]"
             >
               <Input
@@ -233,7 +261,7 @@ const ThongTinTaiSan: React.FC<TTTS> = () => {
                 </span>
               }
               name="thuocKhuonVienDat"
-              //rules={[yupSync]}
+              rules={[yupSync]}
               className="w-full"
               labelCol={{ span: 4 }}  // Điều chỉnh độ rộng của label
               wrapperCol={{ span: 20 }}  // Điều chỉnh độ rộng của phần chứa input
@@ -246,7 +274,7 @@ const ThongTinTaiSan: React.FC<TTTS> = () => {
                   className="flex-1"
                   disabled
                 />
-                <Button >
+                <Button onClick={openCoDatModal}>
                   <PlusCircleOutlined />
                   <span>chọn đất</span>
                 </Button>
@@ -288,7 +316,7 @@ const ThongTinTaiSan: React.FC<TTTS> = () => {
             <div className='flex-7'>
               <Form.Item
                 name="tinh"
-                //rules={[yupSync]}
+                rules={[yupSync]}
                 className="flex-4"
                 //labelCol={{ span: 8 }}  // Điều chỉnh độ rộng của label
                 //wrapperCol={{ span: 24 }}  // Điều chỉnh độ rộng của phần chứa input
@@ -355,7 +383,7 @@ const ThongTinTaiSan: React.FC<TTTS> = () => {
                 </span>
               }
               name="ngayDuaVaoSuDung"
-              //rules={[yupSync]}
+              rules={[yupSync]}
               className="flex-1"
               labelCol={{ span: 8 }}
               wrapperCol={{ span: 16 }}
@@ -395,7 +423,7 @@ const ThongTinTaiSan: React.FC<TTTS> = () => {
                 </span>
               }
               name="namXayDung"
-              //rules={[yupSync]}
+              rules={[yupSync]}
               className="flex-1"
               labelCol={{ span: 8 }}
               wrapperCol={{ span: 16 }}
@@ -436,7 +464,7 @@ const ThongTinTaiSan: React.FC<TTTS> = () => {
             </Form.Item>
             <Form.Item
               name="nhomTaiSan"
-              //rules={[yupSync]}
+              rules={[yupSync]}
               className=" flex-[3]"
             //rules={[{ required: true, message: "Vui lòng chọn nhóm tài sản" }]}
             >
@@ -467,7 +495,7 @@ const ThongTinTaiSan: React.FC<TTTS> = () => {
               </span>
             }
             name="pheDuyetQuyetToan"
-            //rules={[yupSync]}
+            rules={[yupSync]}
             className="flex-1 w-1/2"
             labelCol={{ span: 8 }}
             wrapperCol={{ span: 16 }}
@@ -495,7 +523,7 @@ const ThongTinTaiSan: React.FC<TTTS> = () => {
               </span>
             }
             name="lyDoTang"
-            //rules={[yupSync]}
+            rules={[yupSync]}
             className="flex-1 w-1/2"
             labelCol={{ span: 8 }}
             wrapperCol={{ span: 16 }}
@@ -523,7 +551,7 @@ const ThongTinTaiSan: React.FC<TTTS> = () => {
               </span>
             }
             name="mucDichSuDung"
-            ////rules={[yupSync]}
+            rules={[yupSync]}
             className="flex-1 w-2/3"
             labelCol={{ span: 6 }}
             wrapperCol={{ span: 16 }}
@@ -552,7 +580,6 @@ const ThongTinTaiSan: React.FC<TTTS> = () => {
               </span>
             }
             name="boPhanSuDung"
-            ////rules={[yupSync]}
             className="flex-1 w-2/3 "
             labelCol={{ span: 6 }}
             wrapperCol={{ span: 16 }}
@@ -563,14 +590,13 @@ const ThongTinTaiSan: React.FC<TTTS> = () => {
 
               <Select
                 className="w-full"
-                placeholder="Chọn trạng bộ phận sử dụng"
-                options={[
-                  { label: '------TT', value: 1 },
-                  { label: 'something..', value: 2 },
-                  { label: 'something...', value: 3 },
-                ]}
+                placeholder="Chọn bộ phận sử dụng"
+                options={boPhanList.map((bp) => ({
+                  label: bp.tenBoPhanSuDung,
+                  value: bp.maBoPhanSuDung,
+                }))}
               />
-              <Button >
+              <Button onClick={openModal}>
                 <PlusCircleOutlined />
               </Button>
             </div>
@@ -587,7 +613,6 @@ const ThongTinTaiSan: React.FC<TTTS> = () => {
               </span>
             }
             name="tinhTrangSuDung"
-            ////rules={[yupSync]}
             className="flex-1 w-2/3"
             labelCol={{ span: 6 }}
             wrapperCol={{ span: 16 }}
@@ -609,6 +634,16 @@ const ThongTinTaiSan: React.FC<TTTS> = () => {
         </div>
 
       </Form>
+      <BoPhanSuDung
+        open={isModalOpen}
+        onClose={closeModal}
+        onAdd={handleThemBoPhanSuDung}
+      />
+
+      <CoDat
+        open={coDatOpen}
+        onClose={closeCoDatModal}
+      />
     </>
   )
 }

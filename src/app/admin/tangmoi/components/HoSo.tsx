@@ -14,14 +14,26 @@ const HoSo: React.FC<HoSoProps> = () => {
   const [checked, setChecked] = useState(false);
   const { registerForm } = useSaveContext();
 
-   useEffect(() => {
-     registerForm("HoSo", form);
-   }, []);
-
+     useEffect(() => {
+         registerForm("HoSo", form, validateOnly, handleSubmit);
+       }, []);
 
   const handleCheckboxChange = (e: { target: { checked: boolean | ((prevState: boolean) => boolean); }; }) => {
     setChecked(e.target.checked);
   };
+
+  const validateOnly = async () => {
+    try {
+      const values = await form.validateFields();
+      console.log("validate from HoSo:", values);
+      return true
+      // Gọi API ở đây nếu cần
+    } catch (err) {
+      console.log("Validation failed:", err);
+      return false
+    }
+
+  }
 
   const handleSubmit = async () => {
     try {
@@ -33,6 +45,7 @@ const HoSo: React.FC<HoSoProps> = () => {
     }
 
   }
+
   return (
     <>
       <Form

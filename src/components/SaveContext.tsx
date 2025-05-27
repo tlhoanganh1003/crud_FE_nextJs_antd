@@ -1,11 +1,21 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// SaveContext.tsx
 import React, { createContext, useContext, useRef, useState } from "react";
 import type { FormInstance } from "antd";
 
+interface FormHandlers {
+  form: FormInstance;
+  validateOnly: () => Promise<boolean>;
+  submitFinal: () => Promise<void>;
+}
+
 interface SaveContextType {
   triggerSave: () => void;
-  registerForm: (key: string, form: FormInstance) => void;
+  registerForm: (
+    key: string,
+    form: FormInstance,
+    validateOnly: () => Promise<boolean>,
+    submitFinal: () => Promise<void>
+  ) => void;
   sharedData: Record<string, any>;
   setSharedData: React.Dispatch<React.SetStateAction<Record<string, any>>>;
   updateSharedField: (key: string, value: any) => void;
@@ -14,27 +24,41 @@ interface SaveContextType {
 const SaveContext = createContext<SaveContextType | null>(null);
 
 export const SaveProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const formsRef = useRef<{ [key: string]: FormInstance }>({});
+  const formsRef = useRef<{ [key: string]: FormHandlers }>({});
   const [sharedData, setSharedData] = useState<Record<string, any>>({});
+
   const updateSharedField = (key: string, value: any) => {
     setSharedData((prev) => ({ ...prev, [key]: value }));
   };
 
-  const registerForm = (key: string, form: FormInstance) => {
-    formsRef.current[key] = form;
+  const registerForm = (
+    key: string,
+    form: FormInstance,
+    validateOnly: () => Promise<boolean>,
+    submitFinal: () => Promise<void>
+  ) => {
+    formsRef.current[key] = { form, validateOnly, submitFinal };
   };
 
   const triggerSave = async () => {
-    const formEntries = Object.entries(formsRef.current);
     try {
-      const allValues = await Promise.all(
-        formEntries.map(([key, form]) =>
-          form.validateFields().then((values) => ({ key, values }))
-        )
-      );
-      console.log("✅ Dữ liệu hợp lệ:", allValues);
+      //gọi Validate tất cả form
+      for (const [key, handlers] of Object.entries(formsRef.current)) {
+        const isValid = await handlers.validateOnly();
+        if (!isValid) {
+          console.warn(`Validate thất bại ở form ${key}`);
+          return;
+        }
+      }
+
+      // Submit tất cả form
+      for (const [key, handlers] of Object.entries(formsRef.current)) {
+        await handlers.submitFinal();
+      }
+
+      console.log("Tất cả form validate và submit thành công");
     } catch (err) {
-      console.warn("❌ Lỗi validate:", err);
+      console.error("Có lỗi trong quá trình validate hoặc submit:", err);
     }
   };
 
