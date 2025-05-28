@@ -15,13 +15,13 @@ const Dientich: React.FC<DientichProps> = () => {
 
   // const tongDienTichXayDung = Form.useWatch('tongDienTichXayDung', form)
 
-  //const truSoLamViec = Form.useWatch('truSoLamViec', form)
-  // const coSoHDSN = Form.useWatch('coSoHDSN', form)
-  // const choThue = Form.useWatch('choThue', form)
-  // const suDungKhac = Form.useWatch('suDungKhac', form)
-  // const kinhDoanh = Form.useWatch('kinhDoanh', form)
-  // const lienDoanhLienKet = Form.useWatch('lienDoanhLienKet', form)
-  // const suDungHonHop = Form.useWatch('suDungHonHop', form)
+  const truSoLamViec = Form.useWatch('truSoLamViec', form)
+  const coSoHDSN = Form.useWatch('coSoHDSN', form)
+  const choThue = Form.useWatch('choThue', form)
+  const suDungKhac = Form.useWatch('suDungKhac', form)
+  const kinhDoanh = Form.useWatch('kinhDoanh', form)
+  const lienDoanhLienKet = Form.useWatch('lienDoanhLienKet', form)
+  const suDungHonHop = Form.useWatch('suDungHonHop', form)
 
 
 
@@ -29,6 +29,18 @@ const Dientich: React.FC<DientichProps> = () => {
   useEffect(() => {
     registerForm("dienTich", form, validateOnly, handleSubmit);
   }, []);
+
+  useEffect(() => {
+    form.setFields([
+          {
+            name: 'tongHienTrangSuDung',
+            errors: [],
+          },
+        ]);
+    
+  }, [truSoLamViec, coSoHDSN, choThue,suDungKhac,kinhDoanh,lienDoanhLienKet, suDungHonHop]);
+  
+
 
   // useEffect(() => {
   //   const tongHienTrangSuDung = truSoLamViec+coSoHDSN+choThue+suDungKhac+kinhDoanh+lienDoanhLienKet+suDungHonHop
@@ -214,6 +226,7 @@ const Dientich: React.FC<DientichProps> = () => {
               <Input
                 type="Number"
                 placeholder="nhập giá trị"
+                onBlur={validateOnly}
               />
 
             </Form.Item>
@@ -235,6 +248,7 @@ const Dientich: React.FC<DientichProps> = () => {
               <Input
                 type="Number"
                 placeholder="nhập giá trị"
+                onBlur={validateOnly}
               />
             </Form.Item>
             {/*Cho thuê  */}
@@ -254,6 +268,7 @@ const Dientich: React.FC<DientichProps> = () => {
               <Input
                 type="Number"
                 placeholder="nhập giá trị"
+                onBlur={validateOnly}
               />
             </Form.Item>
             {/*Sử dụng khác  */}
@@ -274,6 +289,7 @@ const Dientich: React.FC<DientichProps> = () => {
               <Input
                 type="Number"
                 placeholder="nhập giá trị"
+                onBlur={validateOnly}
               />
             </Form.Item>
             {/*Kinh doanh  */}
@@ -293,6 +309,7 @@ const Dientich: React.FC<DientichProps> = () => {
               <Input
                 type="Number"
                 placeholder="nhập giá trị"
+                onBlur={validateOnly}
               />
             </Form.Item>
             {/*Liên Doanh-Liên kết  */}
@@ -312,6 +329,7 @@ const Dientich: React.FC<DientichProps> = () => {
               <Input
                 type="Number"
                 placeholder="nhập giá trị"
+                onBlur={validateOnly}
               />
             </Form.Item>
             {/*Sử dụng hỗn hợp  */}
@@ -331,6 +349,7 @@ const Dientich: React.FC<DientichProps> = () => {
               <Input
                 type="Number"
                 placeholder="nhập giá trị"
+                onBlur={validateOnly}
               />
             </Form.Item>
 

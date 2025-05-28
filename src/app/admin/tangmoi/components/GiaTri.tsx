@@ -109,11 +109,7 @@ const Giatri: React.FC<GiaTriProps> = () => {
     values[changedField as keyof typeof values] = newValue;
     //console.log(values)
 
-    const giaTri =
-      values.nguonNganSach +
-      values.NguonSuNghiep +
-      values.nguonVienTro +
-      values.nguonKhac;
+    const giaTri =values.nguonNganSach + values.NguonSuNghiep +values.nguonVienTro +values.nguonKhac;
 
     // console.log(giaTri)
 

@@ -10,6 +10,7 @@ import BoPhanSuDung from './modals/BoPhanSuDung';
 import dayjs from 'dayjs';
 import { boPhanSuDung, mockBoPhanSuDung } from '@/data/boPhanSuDung';
 import CoDat from './modals/CoDat';
+import { coDat } from '@/data/coDat';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface TTTS {
@@ -36,6 +37,7 @@ const ThongTinTaiSan: React.FC<TTTS> = () => {
   const [tinhDropdown, setTinhDropdown] = useState<option[]>([]);
   const [selectedTinh, setSelectedTinh] = useState<number | null>(null);
   const [selectedHuyen, setSelectedHuyen] = useState<number | null>(null);
+  const [dat, setDat] = useState<coDat>();
 
   const [huyenOptions, setHuyenOptions] = useState<option[]>([]);
   const [xaOptions, setXaOptions] = useState<option[]>([]);
@@ -67,6 +69,11 @@ const ThongTinTaiSan: React.FC<TTTS> = () => {
     setTaiSanOptions(taisann)
 
   }, []);
+
+  useEffect(() => {
+
+    form.setFieldsValue({ thuocKhuonVienDat: dat?.tenTaiSan })
+  }, [dat])
 
   const handleCheckboxChange = (e: { target: { checked: boolean | ((prevState: boolean) => boolean); }; }) => {
     setChecked(e.target.checked);
@@ -253,34 +260,39 @@ const ThongTinTaiSan: React.FC<TTTS> = () => {
 
           </Form.Item>
           {checked && (
-            <Form.Item
-              label={
-                <span>
-                  Thuộc khuôn viên đất
-                  <span className="text-red-500 ml-0.5 text-xs">*</span>
-                </span>
-              }
-              name="thuocKhuonVienDat"
-              rules={[yupSync]}
-              className="w-full"
-              labelCol={{ span: 4 }}  // Điều chỉnh độ rộng của label
-              wrapperCol={{ span: 20 }}  // Điều chỉnh độ rộng của phần chứa input
-              labelAlign="left"
+            <div 
+            className='flex gap-2'
             >
-              <div className="flex gap-2 w-20/48">
+
+              <Form.Item
+                label={
+                  <span>
+                    Thuộc khuôn viên đất
+                    <span className="text-red-500 ml-0.5 text-xs">*</span>
+                  </span>
+                }
+                name="thuocKhuonVienDat"
+                rules={[yupSync]}
+                className="w-2/3"
+                labelCol={{ span: 6 }}  // Điều chỉnh độ rộng của label
+                wrapperCol={{ span: 20 }}  // Điều chỉnh độ rộng của phần chứa input
+                labelAlign="left"
+              >
+
                 <Input
                   multiple
                   placeholder=""
                   className="flex-1"
                   disabled
                 />
-                <Button onClick={openCoDatModal}>
-                  <PlusCircleOutlined />
-                  <span>chọn đất</span>
-                </Button>
 
-              </div>
-            </Form.Item>
+
+              </Form.Item>
+              <Button onClick={openCoDatModal}>
+                <PlusCircleOutlined />
+                <span>chọn đất</span>
+              </Button>
+            </div>
 
           )}
 
@@ -576,7 +588,6 @@ const ThongTinTaiSan: React.FC<TTTS> = () => {
             label={
               <span>
                 bộ phận sử dụng
-                <span className="text-red-500 ml-0.5 text-xs">*</span>
               </span>
             }
             name="boPhanSuDung"
@@ -609,7 +620,6 @@ const ThongTinTaiSan: React.FC<TTTS> = () => {
             label={
               <span>
                 Tình trạng sử dụng
-                <span className="text-red-500 ml-0.5 text-xs">*</span>
               </span>
             }
             name="tinhTrangSuDung"
@@ -643,6 +653,7 @@ const ThongTinTaiSan: React.FC<TTTS> = () => {
       <CoDat
         open={coDatOpen}
         onClose={closeCoDatModal}
+        setDat={setDat}
       />
     </>
   )

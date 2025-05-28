@@ -1,5 +1,7 @@
 import { useSaveContext } from '@/components/SaveContext';
 import { Checkbox, DatePicker, Form, Input } from 'antd';
+import TextArea from 'antd/es/input/TextArea';
+import dayjs from 'dayjs';
 import React, { useEffect, useState } from 'react'
 
 
@@ -12,11 +14,12 @@ interface HoSoProps {
 const HoSo: React.FC<HoSoProps> = () => {
   const [form] = Form.useForm();
   const [checked, setChecked] = useState(false);
+  const { sharedData } = useSaveContext();
   const { registerForm } = useSaveContext();
 
-     useEffect(() => {
-         registerForm("HoSo", form, validateOnly, handleSubmit);
-       }, []);
+  useEffect(() => {
+    registerForm("HoSo", form, validateOnly, handleSubmit);
+  }, []);
 
   const handleCheckboxChange = (e: { target: { checked: boolean | ((prevState: boolean) => boolean); }; }) => {
     setChecked(e.target.checked);
@@ -77,7 +80,7 @@ const HoSo: React.FC<HoSoProps> = () => {
                   }
                   name="quyetDinhBanGiao"
                   className="flex-1"
-                  labelCol={{ span: 8 }}
+                  labelCol={{ span: 6 }}
                   wrapperCol={{ span: 16 }}
                   labelAlign="left"
                 >
@@ -93,7 +96,7 @@ const HoSo: React.FC<HoSoProps> = () => {
                 <Form.Item
                   label={
                     <span>
-                      Ngày
+                      Ngày quyết định bàn giao
                     </span>
                   }
                   name="ngayQuyetDinhBanGiao"
@@ -101,6 +104,31 @@ const HoSo: React.FC<HoSoProps> = () => {
                   labelCol={{ span: 8 }}
                   wrapperCol={{ span: 16 }}
                   labelAlign="left"
+                  rules={[
+                    {
+                      validator(_, value) {
+                        const ngayDuaVaoSuDung = sharedData.ngayDuaVaoSuDung;
+                        if (!ngayDuaVaoSuDung) {
+                          return Promise.reject(
+                            new Error("bạn phải chọn ngày đưa vào sử dụng")
+                          );
+                        }
+                        if (!value) {
+                          return Promise.resolve(); // Bỏ qua khi thiếu dữ liệu
+                        }
+
+                        if (
+                          dayjs(value).isAfter(dayjs(ngayDuaVaoSuDung))
+                        ) {
+                          return Promise.reject(
+                            new Error(" Ngày quyết định bàn giao phải nhỏ hơn hoặc bằng Ngày đưa vào sử dụng")
+                          );
+                        }
+
+                        return Promise.resolve();
+                      }
+                    }
+                  ]}
                 >
                   <DatePicker className="w-full"
                     placeholder='yyyy/mm/dd'
@@ -122,7 +150,7 @@ const HoSo: React.FC<HoSoProps> = () => {
                   }
                   name="bienBanNghiemThu"
                   className="flex-1"
-                  labelCol={{ span: 8 }}
+                  labelCol={{ span: 6 }}
                   wrapperCol={{ span: 16 }}
                   labelAlign="left"
                 >
@@ -138,7 +166,7 @@ const HoSo: React.FC<HoSoProps> = () => {
                 <Form.Item
                   label={
                     <span>
-                      Ngày
+                      Ngày nghiệm thu
                     </span>
                   }
                   name="ngayBienBanNghiemThu"
@@ -146,6 +174,26 @@ const HoSo: React.FC<HoSoProps> = () => {
                   labelCol={{ span: 8 }}
                   wrapperCol={{ span: 16 }}
                   labelAlign="left"
+                  rules={[
+                    {
+                      validator(_, value) {
+                        const ngayDuaVaoSuDung = sharedData.ngayDuaVaoSuDung;
+                        if (!value || !ngayDuaVaoSuDung) {
+                          return Promise.resolve(); // Bỏ qua khi thiếu dữ liệu
+                        }
+
+                        if (
+                          dayjs(value).isAfter(dayjs(ngayDuaVaoSuDung))
+                        ) {
+                          return Promise.reject(
+                            new Error("ngày nghiệm thu phải nhỏ hơn hoặc bằng Ngày đưa vào sử dụng")
+                          );
+                        }
+
+                        return Promise.resolve();
+                      }
+                    }
+                  ]}
                 >
                   <DatePicker className="w-full"
                     placeholder='yyyy/mm/dd'
@@ -154,6 +202,21 @@ const HoSo: React.FC<HoSoProps> = () => {
                 </Form.Item>
 
               </div>
+
+              <Form.Item 
+              label={
+                    <span>
+                      Hồ sơ pháp lý khác
+
+                    </span>
+                  }
+                  name="hoSoPhapLyKhac"
+                  className="w-full"
+                  labelCol={{ span: 3 }}
+                  wrapperCol={{ span: 24 }}
+                  labelAlign="left">
+                <TextArea rows={4} />
+              </Form.Item>
 
             </>
 
