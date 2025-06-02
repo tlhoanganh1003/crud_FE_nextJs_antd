@@ -3,6 +3,7 @@ import { Checkbox, DatePicker, Form, Input } from 'antd';
 import TextArea from 'antd/es/input/TextArea';
 import dayjs from 'dayjs';
 import React, { useEffect, useState } from 'react'
+import { hoSoSchema, YupValidator } from '../schema/schema';
 
 
 
@@ -16,6 +17,7 @@ const HoSo: React.FC<HoSoProps> = () => {
   const [checked, setChecked] = useState(false);
   const { sharedData } = useSaveContext();
   const { registerForm } = useSaveContext();
+  const yupSync = YupValidator(hoSoSchema, form.getFieldsValue);
 
   useEffect(() => {
     registerForm("HoSo", form, validateOnly, handleSubmit);
@@ -83,6 +85,7 @@ const HoSo: React.FC<HoSoProps> = () => {
                   labelCol={{ span: 6 }}
                   wrapperCol={{ span: 16 }}
                   labelAlign="left"
+                  rules={[yupSync]}
                 >
 
                   <Input
@@ -114,7 +117,9 @@ const HoSo: React.FC<HoSoProps> = () => {
                           );
                         }
                         if (!value) {
-                          return Promise.resolve(); // Bỏ qua khi thiếu dữ liệu
+                          return Promise.reject(
+                            new Error("nhập ngày bàn giao")
+                          ); // Bỏ qua khi thiếu dữ liệu
                         }
 
                         if (
@@ -153,6 +158,7 @@ const HoSo: React.FC<HoSoProps> = () => {
                   labelCol={{ span: 6 }}
                   wrapperCol={{ span: 16 }}
                   labelAlign="left"
+                  rules={[yupSync]}
                 >
 
                   <Input
@@ -178,15 +184,22 @@ const HoSo: React.FC<HoSoProps> = () => {
                     {
                       validator(_, value) {
                         const ngayDuaVaoSuDung = sharedData.ngayDuaVaoSuDung;
-                        if (!value || !ngayDuaVaoSuDung) {
-                          return Promise.resolve(); // Bỏ qua khi thiếu dữ liệu
+                        if (!ngayDuaVaoSuDung) {
+                          return Promise.reject(
+                            new Error("bạn phải chọn ngày đưa vào sử dụng")
+                          );
+                        }
+                        if (!value) {
+                          return Promise.reject(
+                            new Error("nhập ngày nghiệm thu")
+                          ); // Bỏ qua khi thiếu dữ liệu
                         }
 
                         if (
                           dayjs(value).isAfter(dayjs(ngayDuaVaoSuDung))
                         ) {
                           return Promise.reject(
-                            new Error("ngày nghiệm thu phải nhỏ hơn hoặc bằng Ngày đưa vào sử dụng")
+                            new Error(" Ngày quyết định bàn giao phải nhỏ hơn hoặc bằng Ngày đưa vào sử dụng")
                           );
                         }
 
@@ -203,18 +216,19 @@ const HoSo: React.FC<HoSoProps> = () => {
 
               </div>
 
-              <Form.Item 
-              label={
-                    <span>
-                      Hồ sơ pháp lý khác
+              {/* Hồ sơ pháp lý khác */}
+              <Form.Item
+                label={
+                  <span>
+                    Hồ sơ pháp lý khác
 
-                    </span>
-                  }
-                  name="hoSoPhapLyKhac"
-                  className="w-full"
-                  labelCol={{ span: 3 }}
-                  wrapperCol={{ span: 24 }}
-                  labelAlign="left">
+                  </span>
+                }
+                name="hoSoPhapLyKhac"
+                className="w-full"
+                labelCol={{ span: 3 }}
+                wrapperCol={{ span: 24 }}
+                labelAlign="left">
                 <TextArea rows={4} />
               </Form.Item>
 

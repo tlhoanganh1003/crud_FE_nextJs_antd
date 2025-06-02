@@ -1,6 +1,7 @@
 import { useSaveContext } from '@/components/SaveContext';
 import { Form, Input } from 'antd'
 import React, { useEffect } from 'react'
+import { dienTichSchema, YupValidator } from '../schema/schema';
 
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
@@ -14,6 +15,7 @@ const Dientich: React.FC<DientichProps> = () => {
   const { registerForm } = useSaveContext();
 
   // const tongDienTichXayDung = Form.useWatch('tongDienTichXayDung', form)
+  const yupSync = YupValidator(dienTichSchema, form.getFieldsValue);
 
   const truSoLamViec = Form.useWatch('truSoLamViec', form)
   const coSoHDSN = Form.useWatch('coSoHDSN', form)
@@ -32,14 +34,14 @@ const Dientich: React.FC<DientichProps> = () => {
 
   useEffect(() => {
     form.setFields([
-          {
-            name: 'tongHienTrangSuDung',
-            errors: [],
-          },
-        ]);
-    
-  }, [truSoLamViec, coSoHDSN, choThue,suDungKhac,kinhDoanh,lienDoanhLienKet, suDungHonHop]);
-  
+      {
+        name: 'tongHienTrangSuDung',
+        errors: [],
+      },
+    ]);
+
+  }, [truSoLamViec, coSoHDSN, choThue, suDungKhac, kinhDoanh, lienDoanhLienKet, suDungHonHop]);
+
 
 
   // useEffect(() => {
@@ -118,6 +120,7 @@ const Dientich: React.FC<DientichProps> = () => {
                 </span>
               }
               name="dienTichXayDung"
+              rules={[yupSync]}
               className="flex-1"
               labelCol={{ span: 8 }}
               wrapperCol={{ span: 16 }}
@@ -142,6 +145,7 @@ const Dientich: React.FC<DientichProps> = () => {
                 </span>
               }
               name="soTang"
+              rules={[yupSync]}
               className='w-1/2'
               labelCol={{ span: 8 }}
               wrapperCol={{ span: 16 }}
@@ -165,6 +169,7 @@ const Dientich: React.FC<DientichProps> = () => {
                 </span>
               }
               name="tongDienTichXayDung"
+              rules={[yupSync]}
               className="flex-1"
               labelCol={{ span: 8 }}
               wrapperCol={{ span: 16 }}
@@ -222,6 +227,7 @@ const Dientich: React.FC<DientichProps> = () => {
               labelCol={{ span: 24 }}
               wrapperCol={{ span: 24 }}
               labelAlign="left"
+              rules={[yupSync]}
             >
               <Input
                 type="Number"
@@ -243,6 +249,7 @@ const Dientich: React.FC<DientichProps> = () => {
               labelCol={{ span: 24 }}
               wrapperCol={{ span: 24 }}
               labelAlign="left"
+              rules={[yupSync]}
             >
 
               <Input
@@ -264,6 +271,7 @@ const Dientich: React.FC<DientichProps> = () => {
               labelCol={{ span: 24 }}
               wrapperCol={{ span: 24 }}
               labelAlign="left"
+              rules={[yupSync]}
             >
               <Input
                 type="Number"
@@ -284,6 +292,7 @@ const Dientich: React.FC<DientichProps> = () => {
               labelCol={{ span: 24 }}
               wrapperCol={{ span: 24 }}
               labelAlign="left"
+              rules={[yupSync]}
             >
 
               <Input
@@ -305,6 +314,7 @@ const Dientich: React.FC<DientichProps> = () => {
               labelCol={{ span: 24 }}
               wrapperCol={{ span: 24 }}
               labelAlign="left"
+              rules={[yupSync]}
             >
               <Input
                 type="Number"
@@ -325,6 +335,7 @@ const Dientich: React.FC<DientichProps> = () => {
               labelCol={{ span: 24 }}
               wrapperCol={{ span: 24 }}
               labelAlign="left"
+              rules={[yupSync]}
             >
               <Input
                 type="Number"
@@ -345,6 +356,7 @@ const Dientich: React.FC<DientichProps> = () => {
               labelCol={{ span: 24 }}
               wrapperCol={{ span: 24 }}
               labelAlign="left"
+              rules={[yupSync]}
             >
               <Input
                 type="Number"

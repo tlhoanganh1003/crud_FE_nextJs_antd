@@ -70,12 +70,27 @@ export const giaTriSchema = Yup.object({
 export const dienTichSchema = Yup.object({
   dienTichXayDung: Yup.number().required('phải có diện tích xây dựng'),
   soTang: Yup.number().required('phải có số tầng'),
-  tongDTSanXayDung: Yup.number().required('phải có tổng diện tích sàn xây dựng'),
+  tongDienTichXayDung: Yup.number().required('phải có tổng diện tích xây dựng'),
+  truSoLamViec: Yup.number().typeError('Phải là số').moreThan(0, 'nhập số > 0'), 
+  coSoHDSN: Yup.number().typeError('Phải là số').moreThan(0, 'nhập số > 0'),
+  choThue: Yup.number().typeError('Phải là số').moreThan(0, 'nhập số > 0'),
+  suDungKhac: Yup.number().typeError('Phải là số').moreThan(0, 'nhập số > 0'),
+  kinhDoanh: Yup.number().typeError('Phải là số').moreThan(0, 'nhập số > 0'),
+  lienDoanhLienKet: Yup.number().typeError('Phải là số').moreThan(0, 'nhập số > 0'),
+  suDungHonHop: Yup.number().typeError('Phải là số').moreThan(0, 'nhập số > 0'),
 
 })
-export const themBoPhanSchema = Yup.object({
+
+export const hoSoSchema = Yup.object({
   maBoPhanSuDung: Yup.string().required('phải có  Mã Bộ phận sử dụng'),
   tenBoPhanSuDung: Yup.string().required('phải có Tên Bộ phận sử dụng'),
+})
+
+
+
+export const themBoPhanSchema = Yup.object({
+  quyetDinhBanGiao: Yup.string().required('phải có quyết định bàn giao'),
+  bienBanNghiemThu: Yup.string().required('phải có biên bản nghiệm thu'),
 })
 
 

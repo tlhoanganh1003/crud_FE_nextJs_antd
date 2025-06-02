@@ -3,6 +3,7 @@ import { Button, Form, Input, Modal, Select } from 'antd';
 import { SaveOutlined } from '@ant-design/icons';
 import { boPhanSuDung } from '@/data/boPhanSuDung';
 import { themBoPhanSchema, YupValidator } from '../../schema/schema';
+import TreeDonVi from '@/components/useTreeDonViData';
 
 
 
@@ -17,11 +18,17 @@ interface BoPhanSuDungFormProps {
 const BoPhanSuDung: React.FC<BoPhanSuDungFormProps> = ({ open, onClose, onAdd }) => {
   const [form] = Form.useForm();
   const yupSync = YupValidator(themBoPhanSchema, form.getFieldsValue);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  // const [treeData, setTreeData] = useState<any[]>([]);
+
 
   const handleClose = () => {
     form.resetFields()
     onClose()
   }
+
+
+
 
   const handleSubmit = async () => {
     try {
@@ -89,7 +96,7 @@ const BoPhanSuDung: React.FC<BoPhanSuDungFormProps> = ({ open, onClose, onAdd })
           label={
             <span>
               Bộ phận sử dụng cha
-              
+
             </span>
           }
           name="boPhanSuDungCha"
@@ -105,7 +112,7 @@ const BoPhanSuDung: React.FC<BoPhanSuDungFormProps> = ({ open, onClose, onAdd })
           label={
             <span>
               địa chỉ
-              
+
             </span>
           }
           name="diaChi"
@@ -120,7 +127,7 @@ const BoPhanSuDung: React.FC<BoPhanSuDungFormProps> = ({ open, onClose, onAdd })
           label={
             <span>
               Điện thoại
-              
+
             </span>
           }
           name="dienThoai"
@@ -136,7 +143,7 @@ const BoPhanSuDung: React.FC<BoPhanSuDungFormProps> = ({ open, onClose, onAdd })
           label={
             <span>
               Fax
-              
+
             </span>
           }
           name="Fax"
@@ -145,6 +152,23 @@ const BoPhanSuDung: React.FC<BoPhanSuDungFormProps> = ({ open, onClose, onAdd })
           labelAlign="left"
         >
           <Input />
+        </Form.Item>
+
+        {/* đơn vị */}
+
+
+        <Form.Item
+          label={
+            <span>
+              đơn Vị
+            </span>
+          }
+          name="hihi"
+          labelCol={{ span: 8 }}
+          wrapperCol={{ span: 24 }}
+          labelAlign="left"
+        >
+          <TreeDonVi />
         </Form.Item>
 
 
