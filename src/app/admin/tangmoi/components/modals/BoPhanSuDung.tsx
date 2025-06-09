@@ -1,3 +1,5 @@
+
+"use client"
 import React from 'react'
 import { Button, Form, Input, Modal, Select } from 'antd';
 import { SaveOutlined } from '@ant-design/icons';
@@ -6,8 +8,6 @@ import { themBoPhanSchema, YupValidator } from '../../schema/schema';
 import TreeDonVi from '@/components/useTreeDonViData';
 
 
-
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface BoPhanSuDungFormProps {
   open: boolean;
   onClose: () => void;
@@ -18,15 +18,12 @@ interface BoPhanSuDungFormProps {
 const BoPhanSuDung: React.FC<BoPhanSuDungFormProps> = ({ open, onClose, onAdd }) => {
   const [form] = Form.useForm();
   const yupSync = YupValidator(themBoPhanSchema, form.getFieldsValue);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   // const [treeData, setTreeData] = useState<any[]>([]);
-
-
   const handleClose = () => {
     form.resetFields()
     onClose()
   }
-
 
 
 
@@ -169,6 +166,19 @@ const BoPhanSuDung: React.FC<BoPhanSuDungFormProps> = ({ open, onClose, onAdd })
           labelAlign="left"
         >
           <TreeDonVi />
+        </Form.Item>
+
+        <Form.Item
+          label={
+            <span>
+              MathFeild
+            </span>
+          }
+          name="MathFeild"
+          labelCol={{ span: 8 }}
+          wrapperCol={{ span: 24 }}
+          labelAlign="left"
+        >
         </Form.Item>
 
 

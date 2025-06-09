@@ -3,7 +3,7 @@ import 'antd/dist/reset.css';
 import "./globals.css";
 import { ReactNode } from "react";
 import { ConfigProvider } from "antd";
-
+import 'mathlive/static.css'
 export const metadata: Metadata = {
   title: "quản lý sinh viên",
   description: "hihi",

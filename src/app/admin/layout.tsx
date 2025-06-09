@@ -16,6 +16,9 @@ export default function RootLayout({
     { key: 'home', label: 'Trang chủ', path: '/admin' },
     { key: 'qlsv', label: 'Quản lý sinh viên', path: '/admin/qlsv' },
     { key: 'tangmoi', label: 'Tăng mới', path: '/admin/tangmoi' },
+    { key: 'qltt', label: 'thời tiết', path: '/admin/qltt' },
+    { key: 'demotextedit', label: 'demotextedit', path: '/admin/demotextedit' },
+     { key: 'testMathLive', label: 'contentDemo', path: '/admin/contentDemo' },
     // thêm nữa nếu cần
   ];
 
