@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 'use client';
@@ -17,9 +16,9 @@ const ContentDemo = () => {
   const [options, setOptions] = useState<{ id: number; content: string }[]>([]);
   const [selected, setSelected] = useState<string>('');
   const [content, setContent] = useState('');
- // const editorRef = useRef<{ handleSave: () => void; handleSaveDemo: () => void }>(null);
+  // const editorRef = useRef<{ handleSave: () => void; handleSaveDemo: () => void }>(null);
 
-    useEffect(() => {
+  useEffect(() => {
     axios.get('http://localhost:5015/api/api/contentdemo')
       .then(res => {
         // Giả sử API trả về một mảng các object { id, content }
@@ -30,17 +29,17 @@ const ContentDemo = () => {
       });
   }, []);
 
-useEffect(() => {
-  if (!selected) return;
+  useEffect(() => {
+    if (!selected) return;
 
-  axios.get(`http://localhost:5015/api/api/contentdemo/${selected}`)
-    .then(res => {
-      setContent(res.data?.content || '');
-    })
-    .catch(err => {
-      console.error('Lỗi khi lấy content chi tiết:', err);
-    });
-}, [selected]);
+    axios.get(`http://localhost:5015/api/api/contentdemo/${selected}`)
+      .then(res => {
+        setContent(res.data?.content || '');
+      })
+      .catch(err => {
+        console.error('Lỗi khi lấy content chi tiết:', err);
+      });
+  }, [selected]);
 
   const handleChange = (value: string) => {
     setSelected(value);
@@ -53,26 +52,51 @@ useEffect(() => {
 
   };
 
+  const handleSave = async () => {
+    try {
+      const payload = {
+        id: selected,       // hoặc selected.id nếu selected là object
+        content: content,   // content hiện tại của editor
+      };
+
+      const response = await axios.post(`http://localhost:5015/api/api/contentdemo/${selected}`, payload);
+
+
+      // console.log('Kết quả lưu:', response.data);
+    } catch (error) {
+      console.error('Lỗi khi lưu nội dung:', error);
+
+    }
+  };
+
 
   return (
     <>
+      <label htmlFor="">chọn content: </label>
       <Select
-      value={selected}
-      style={{ width: 300 }}
-      onChange={handleChange}
-      placeholder="Chọn content demo"
-    >
-      {options.map((item) => (
-        <Option key={item.id} value={item.id.toString()}>
-          {item.id}
-        </Option>
-      ))}
-    </Select>
+        value={selected}
+        style={{ width: 300 }}
+        onChange={handleChange}
+        placeholder="Chọn content demo"
+      >
+        {options.map((item) => (
+          <Option key={item.id} value={item.id.toString()}>
+            {item.id}
+          </Option>
+        ))}
+      </Select>
       <CustomEditor
         //ref={editorRef}
         initialValue={content}
-       onChange={handleEditorChange} 
-        />
+        onChange={handleEditorChange}
+      />
+
+      <Button
+        onClick={handleSave}
+        style={{ marginTop: 8 }}
+      >
+        update demo content
+      </Button>
     </>
   );
 };

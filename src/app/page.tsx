@@ -13,6 +13,12 @@ export default function Home() {
         }>
       Đến trang chủ
     </Button>
+    <Button type="primary" onClick={() => 
+        router.push('/baoBieuThoiTiet')
+        //message.success('Thông báo thành công!')
+        }>
+      Đến báo biểu thời tiết
+    </Button>
     </div>
   );
 }
