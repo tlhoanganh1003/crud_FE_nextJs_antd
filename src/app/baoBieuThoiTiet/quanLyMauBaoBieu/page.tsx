@@ -100,6 +100,11 @@ const QuanLyMauBaoBieuPage = () => {
     router.push(`/baoBieuThoiTiet/quanLyMauBaoBieu/${id}/edit-basecontent`);
   };
 
+  const handleBaoBieuByBaseId = (id: number) => {
+    // Điều hướng đến trang thêm content cho mẫu, ví dụ: /quan-ly-mau/{id}/them-content
+    router.push(`/baoBieuThoiTiet/quanLyBaoBieu/${id}/baoBieuByBaseId`);
+  };
+
   // --- Định nghĩa các cột cho bảng ---
   const columns: ColumnsType<BaseBaoBieu> = [
     {
@@ -119,6 +124,9 @@ const QuanLyMauBaoBieuPage = () => {
       width: '30%',
       render: (_, record) => (
         <Space size="middle">
+          <Button icon={<FileAddOutlined />} onClick={() => handleBaoBieuByBaseId(record.id)}>
+            xem Báo biểu
+          </Button>
           <Button icon={<FileAddOutlined />} onClick={() => handleAddContent(record.id)}>
             Thêm mới baseContent
           </Button>
