@@ -6,7 +6,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { Table, Button, Space, Modal, Form, Input, Popconfirm, message, Typography } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import axios from 'axios';
-import { PlusOutlined, EditOutlined, DeleteOutlined, FileAddOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, DeleteOutlined, FileAddOutlined, FileOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
 
 // Định nghĩa kiểu dữ liệu cho BaseBaoBieu (phần response)
@@ -124,7 +124,7 @@ const QuanLyMauBaoBieuPage = () => {
       width: '30%',
       render: (_, record) => (
         <Space size="middle">
-          <Button icon={<FileAddOutlined />} onClick={() => handleBaoBieuByBaseId(record.id)}>
+          <Button icon={<FileOutlined />} onClick={() => handleBaoBieuByBaseId(record.id)}>
             xem Báo biểu
           </Button>
           <Button icon={<FileAddOutlined />} onClick={() => handleAddContent(record.id)}>

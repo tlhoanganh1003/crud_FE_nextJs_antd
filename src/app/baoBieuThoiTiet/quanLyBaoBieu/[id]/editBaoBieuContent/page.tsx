@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, use } from 'react';
 import { Tabs, Button, Spin, message, Typography } from 'antd';
 import type { TabsProps } from 'antd';
 import axios from 'axios';
-import CustomEditor from '@/components/CustomEditor'; 
+import CustomEditor from '@/components/CustomEditor';
+import { exportToHtmlDoc } from '@/app/ultis/exportHelper';
 
 // Định nghĩa các kiểu dữ liệu để làm việc với TypeScript
 interface BaoBieuContent {
@@ -21,9 +22,9 @@ interface BaoBieu {
   baoBieuContents: BaoBieuContent[];
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const BaoBieuDetailPage = ({ params }: { params: { id: string } }) => {
-  const baoBieuId = 1;
+const BaoBieuDetailPage = ({ params }: { params: Promise<{ id: string }> }) => {
+  const resolvedParams = use(params);
+  const baoBieuId = resolvedParams.id;
 
   const [baoBieu, setBaoBieu] = useState<BaoBieu | null>(null);
   const [originalBaoBieu, setOriginalBaoBieu] = useState<BaoBieu | null>(null); // Lưu trạng thái ban đầu để so sánh
@@ -36,11 +37,11 @@ const BaoBieuDetailPage = ({ params }: { params: { id: string } }) => {
     setLoading(true);
     try {
       const response = await axios.get<BaoBieu>(`http://localhost:5015/api/v1/bao-bieu/${baoBieuId}`);
-      
+
       // Sắp xếp contents theo soThuTu để hiển thị đúng thứ tự
       const sortedData = {
-          ...response.data,
-          baoBieuContents: response.data.baoBieuContents.sort((a, b) => a.soThuTu - b.soThuTu)
+        ...response.data,
+        baoBieuContents: response.data.baoBieuContents.sort((a, b) => a.soThuTu - b.soThuTu)
       };
 
       setBaoBieu(sortedData);
@@ -62,7 +63,7 @@ const BaoBieuDetailPage = ({ params }: { params: { id: string } }) => {
   const handleEditorChange = (contentId: number, newContent: string) => {
     setBaoBieu(prevBaoBieu => {
       if (!prevBaoBieu) return null;
-      
+
       const updatedContents = prevBaoBieu.baoBieuContents.map(item =>
         item.id === contentId ? { ...item, content: newContent } : item
       );
@@ -74,8 +75,8 @@ const BaoBieuDetailPage = ({ params }: { params: { id: string } }) => {
   // Hàm xử lý khi nhấn nút lưu
   const handleSaveAll = async () => {
     if (!baoBieu || !originalBaoBieu) {
-        message.warning('Không có dữ liệu để lưu.');
-        return;
+      message.warning('Không có dữ liệu để lưu.');
+      return;
     }
 
     setSaving(true);
@@ -83,36 +84,36 @@ const BaoBieuDetailPage = ({ params }: { params: { id: string } }) => {
     const updatePromises: Promise<any>[] = [];
 
     baoBieu.baoBieuContents.forEach(currentItem => {
-        const originalItem = originalBaoBieu.baoBieuContents.find(item => item.id === currentItem.id);
+      const originalItem = originalBaoBieu.baoBieuContents.find(item => item.id === currentItem.id);
 
-        // Chỉ gửi request nếu nội dung đã thay đổi
-        if (originalItem && originalItem.content !== currentItem.content) {
-            console.log(`Đang lưu content ID: ${currentItem.id}`);
-            const payload = { content: currentItem.content };
-            const promise = axios.put(
-                `http://localhost:5015/api/v1/bao-bieu/${baoBieuId}/contents/${currentItem.id}`, 
-                payload
-            );
-            updatePromises.push(promise);
-        }
+      // Chỉ gửi request nếu nội dung đã thay đổi
+      if (originalItem && originalItem.content !== currentItem.content) {
+        console.log(`Đang lưu content ID: ${currentItem.id}`);
+        const payload = { content: currentItem.content };
+        const promise = axios.put(
+          `http://localhost:5015/api/v1/bao-bieu/${baoBieuId}/contents/${currentItem.id}`,
+          payload
+        );
+        updatePromises.push(promise);
+      }
     });
 
     if (updatePromises.length === 0) {
-        message.info('Không có thay đổi nào để lưu.');
-        setSaving(false);
-        return;
+      message.info('Không có thay đổi nào để lưu.');
+      setSaving(false);
+      return;
     }
 
     try {
-        await Promise.all(updatePromises);
-        message.success(`Đã lưu thành công ${updatePromises.length} thay đổi!`);
-        // Sau khi lưu thành công, cập nhật lại trạng thái ban đầu
-        setOriginalBaoBieu(JSON.parse(JSON.stringify(baoBieu)));
+      await Promise.all(updatePromises);
+      message.success(`Đã lưu thành công ${updatePromises.length} thay đổi!`);
+      // Sau khi lưu thành công, cập nhật lại trạng thái ban đầu
+      setOriginalBaoBieu(JSON.parse(JSON.stringify(baoBieu)));
     } catch (error) {
-        console.error('Lỗi khi lưu các thay đổi:', error);
-        message.error('Đã xảy ra lỗi trong quá trình lưu.');
+      console.error('Lỗi khi lưu các thay đổi:', error);
+      message.error('Đã xảy ra lỗi trong quá trình lưu.');
     } finally {
-        setSaving(false);
+      setSaving(false);
     }
   };
 
@@ -141,7 +142,7 @@ const BaoBieuDetailPage = ({ params }: { params: { id: string } }) => {
     <div style={{ padding: '24px' }}>
       <Typography.Title level={2}>{baoBieu.tenBaoBieu}</Typography.Title>
       <Typography.Text type="secondary">Dựa trên mẫu: {baoBieu.tenBaseBaoBieu}</Typography.Text>
-      
+
       <Tabs defaultActiveKey="1" items={tabItems} style={{ marginTop: '16px' }} />
 
       <Button
@@ -151,6 +152,21 @@ const BaoBieuDetailPage = ({ params }: { params: { id: string } }) => {
         style={{ marginTop: '24px' }}
       >
         Lưu tất cả thay đổi
+      </Button>
+
+      <Button
+        onClick={() => {
+          if (baoBieu) {
+            exportToHtmlDoc(
+              baoBieu.baoBieuContents,
+              baoBieu.tenBaoBieu,
+              `Mau_${baoBieu.tenBaoBieu}`
+            );
+          }
+        }}
+        disabled={!baoBieu}
+      >
+        📝 Tải về file Word (.doc)
       </Button>
     </div>
   );

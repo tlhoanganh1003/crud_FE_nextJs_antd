@@ -7,6 +7,7 @@ import type { TabsProps } from 'antd';
 import axios from 'axios';
 import CustomEditor from '@/components/CustomEditor';
 import { exportToHtmlDoc } from '@/app/ultis/exportHelper';
+import { printHtmlContent } from '@/app/ultis/exportPDF';
 
 
 interface BaseContent {
@@ -150,6 +151,15 @@ const SuaBaseBaoBieuPage: React.FC<Props> = ({ baseBaoBieuId }) => {
         />
       ),
     }));
+
+    const handlePrintPdf = () => {
+    if (baseBaoBieu) {
+        printHtmlContent(
+            baseBaoBieu.baseContents,
+            baseBaoBieu.tenBaseBaoBieu
+        );
+    }
+};
   
     return (
       <div style={{ padding: '24px' }}>
@@ -181,6 +191,10 @@ const SuaBaseBaoBieuPage: React.FC<Props> = ({ baseBaoBieuId }) => {
         >
           📝 Tải về file Word (.doc)
         </Button>
+
+         <Button onClick={handlePrintPdf}>
+                📄 In ra PDF
+            </Button>
       </div>
     );
 };
