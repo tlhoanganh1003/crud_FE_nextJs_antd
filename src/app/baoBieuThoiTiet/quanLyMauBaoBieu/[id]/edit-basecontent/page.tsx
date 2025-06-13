@@ -8,6 +8,8 @@ import axios from 'axios';
 import CustomEditor from '@/components/CustomEditor';
 import { exportToHtmlDoc } from '@/app/ultis/exportHelper';
 import { printHtmlContent } from '@/app/ultis/exportPDF';
+import { useRouter } from 'next/navigation';
+import { RollbackOutlined } from '@ant-design/icons';
 
 
 interface BaseContent {
@@ -27,9 +29,11 @@ interface BaseBaoBieu {
 const API_URL = 'http://localhost:5015/api/v1/base-bao-bieu';
 
 export default function Page({ params }: { params: Promise<{ id: string }> }) {
-
+  const router = useRouter();
   const resolvedParams = use(params);
   const baseBaoBieuId = resolvedParams.id;
+
+  const [messageApi, contextHolder] = message.useMessage();
   const [baseBaoBieu, setBaseBaoBieu] = useState<BaseBaoBieu | null>(null);
   const [originalBaseBaoBieu, setOriginalBaseBaoBieu] = useState<BaseBaoBieu | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -52,13 +56,14 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
 
       setBaseBaoBieu(sortedData);
       setOriginalBaseBaoBieu(JSON.parse(JSON.stringify(sortedData)));
-      message.success('Tải dữ liệu mẫu báo biểu thành công!');
+      messageApi.success('Tải dữ liệu mẫu báo biểu thành công!');
     } catch (error) {
       console.error('Lỗi khi tải dữ liệu mẫu báo biểu:', error);
-      message.error('Không thể tải dữ liệu mẫu báo biểu.');
+      messageApi.error('Không thể tải dữ liệu mẫu báo biểu.');
     } finally {
       setLoading(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [baseBaoBieuId]);
 
   useEffect(() => {
@@ -82,7 +87,7 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
   // Hàm xử lý khi nhấn nút lưu
   const handleSaveAll = async () => {
     if (!baseBaoBieu || !originalBaseBaoBieu) {
-      message.warning('Không có dữ liệu để lưu.');
+      messageApi.warning('Không có dữ liệu để lưu.');
       return;
     }
 
@@ -109,19 +114,19 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
     });
 
     if (updatePromises.length === 0) {
-      message.info('Không có thay đổi nào để lưu.');
+      messageApi.info('Không có thay đổi nào để lưu.');
       setSaving(false);
       return;
     }
 
     try {
       await Promise.all(updatePromises);
-      message.success(`Đã lưu thành công ${updatePromises.length} thay đổi!`);
+      messageApi.success(`Đã lưu thành công ${updatePromises.length} thay đổi!`);
       // Cập nhật lại trạng thái ban đầu
       setOriginalBaseBaoBieu(JSON.parse(JSON.stringify(baseBaoBieu)));
     } catch (error) {
       console.error('Lỗi khi lưu các thay đổi:', error);
-      message.error('Đã xảy ra lỗi. API cập nhật có thể chưa được xây dựng.');
+      messageApi.error('Đã xảy ra lỗi. API cập nhật có thể chưa được xây dựng.');
     } finally {
       setSaving(false);
     }
@@ -158,39 +163,50 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
   };
 
   return (
-    <div style={{ padding: '24px' }}>
-      {/* === BƯỚC 6: SỬA LẠI PHẦN HIỂN THỊ THÔNG TIN === */}
-      <Typography.Title level={2}>Sửa Mẫu: {baseBaoBieu.tenBaseBaoBieu}</Typography.Title>
+    <>
+      {contextHolder}
+      <div style={{ padding: '24px' }}>
 
-      <Tabs defaultActiveKey="1" items={tabItems} style={{ marginTop: '16px' }} />
+        <Typography.Title level={2}>Sửa Mẫu: {baseBaoBieu.tenBaseBaoBieu}</Typography.Title>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
+          <Button
+            icon={<RollbackOutlined />}
+            onClick={() => router.back()}
+          >
+            Quay lại
+          </Button>
+        </div>
 
-      <Button
-        type="primary"
-        onClick={handleSaveAll}
-        loading={saving}
-        style={{ marginTop: '24px' }}
-      >
-        Lưu tất cả thay đổi
-      </Button>
+        <Tabs defaultActiveKey="1" items={tabItems} style={{ marginTop: '16px' }} />
 
-      <Button
-        onClick={() => {
-          if (baseBaoBieu) {
-            exportToHtmlDoc(
-              baseBaoBieu.baseContents,
-              baseBaoBieu.tenBaseBaoBieu,
-              `Mau_${baseBaoBieu.tenBaseBaoBieu}`
-            );
-          }
-        }}
-        disabled={!baseBaoBieu}
-      >
-        📝 Tải về file Word (.doc)
-      </Button>
+        <Button
+          type="primary"
+          onClick={handleSaveAll}
+          loading={saving}
+          style={{ marginTop: '24px' }}
+        >
+          Lưu tất cả thay đổi
+        </Button>
 
-      <Button onClick={handlePrintPdf}>
-        📄 In ra PDF
-      </Button>
-    </div>
+        <Button
+          onClick={() => {
+            if (baseBaoBieu) {
+              exportToHtmlDoc(
+                baseBaoBieu.baseContents,
+                baseBaoBieu.tenBaseBaoBieu,
+                `Mau_${baseBaoBieu.tenBaseBaoBieu}`
+              );
+            }
+          }}
+          disabled={!baseBaoBieu}
+        >
+          📝 Tải về file Word (.doc)
+        </Button>
+
+        <Button onClick={handlePrintPdf}>
+          📄 In ra PDF
+        </Button>
+      </div>
+    </>
   );
 }

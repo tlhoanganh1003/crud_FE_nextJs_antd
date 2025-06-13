@@ -4,7 +4,7 @@ import React, { useEffect, useState, useCallback, use } from 'react';
 import { Table, Button, Space, Modal, Form, Input, Popconfirm, message, Typography, Breadcrumb } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import axios from 'axios';
-import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, DeleteOutlined, RollbackOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
 
 
@@ -28,7 +28,7 @@ const API_BASEBAOBIEU_URL = 'http://localhost:5015/api/v1/base-bao-bieu';
 const BaoBieuByBaseIdPage = ({ params }: { params: Promise<{ id: string }> }) => {
   const resolvedParams = use(params);
   const baseBaoBieuId = resolvedParams.id;
-
+  const [messageApi, contextHolder] = message.useMessage();
   const [data, setData] = useState<BaoBieu[]>([]);
   const [baseBaoBieuName, setBaseBaoBieuName] = useState<string>(''); // Lưu tên của mẫu cha để hiển thị
   const [loading, setLoading] = useState<boolean>(true);
@@ -54,10 +54,11 @@ const BaoBieuByBaseIdPage = ({ params }: { params: Promise<{ id: string }> }) =>
       }
     } catch (error) {
       console.error('Lỗi khi tải danh sách báo biểu:', error);
-      message.error('Không thể tải danh sách báo biểu.');
+      messageApi.error('Không thể tải danh sách báo biểu.');
     } finally {
       setLoading(false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [baseBaoBieuId]);
 
   useEffect(() => {
@@ -77,14 +78,14 @@ const BaoBieuByBaseIdPage = ({ params }: { params: Promise<{ id: string }> }) =>
         baseBaoBieuId: Number(baseBaoBieuId), // Gán ID của mẫu đang xem
         tenBaoBieu: values.tenBaoBieu,
       };
-      
+
       await axios.post(API_BAOBIEU_URL, payload);
-      message.success('Tạo báo biểu thành công!');
+      messageApi.success('Tạo báo biểu thành công!');
       setIsModalOpen(false);
       fetchData(); // Tải lại dữ liệu
     } catch (error) {
       console.error('Lỗi khi tạo báo biểu:', error);
-      message.error('Đã xảy ra lỗi trong quá trình tạo.');
+      messageApi.error('Đã xảy ra lỗi trong quá trình tạo.');
     }
   };
 
@@ -96,11 +97,11 @@ const BaoBieuByBaseIdPage = ({ params }: { params: Promise<{ id: string }> }) =>
   const handleDelete = async (id: number) => {
     try {
       await axios.delete(`${API_BAOBIEU_URL}/${id}`);
-      message.success('Xóa báo biểu thành công!');
+      messageApi.success('Xóa báo biểu thành công!');
       fetchData(); // Tải lại dữ liệu
     } catch (error) {
       console.error('Lỗi khi xóa báo biểu:', error);
-      message.error('Không thể xóa báo biểu này.');
+      messageApi.error('Không thể xóa báo biểu này.');
     }
   };
 
@@ -149,57 +150,71 @@ const BaoBieuByBaseIdPage = ({ params }: { params: Promise<{ id: string }> }) =>
   ];
 
   const breadcrumbItems = [
-  {
-    title: 'Quản lý Mẫu Báo biểu',
-    onClick: () => router.push('/baoBieuThoiTiet/quanLyMauBaoBieu'),
-    style: { cursor: 'pointer' } // Bạn có thể thêm style nếu muốn
-  },
-  {
-    title: baseBaoBieuName || 'Đang tải...', // Item thứ hai
-  },
-];
+    {
+      title: 'Quản lý Mẫu Báo biểu',
+      onClick: () => router.push('/baoBieuThoiTiet/quanLyMauBaoBieu'),
+      style: { cursor: 'pointer' } // Bạn có thể thêm style nếu muốn
+    },
+    {
+      title: baseBaoBieuName || 'Đang tải...', // Item thứ hai
+    },
+  ];
 
   return (
-    <div style={{ padding: '24px' }}>
-      {/* 2. Sử dụng prop 'items' để render Breadcrumb */}
-    <Breadcrumb 
-      items={breadcrumbItems} 
-      style={{ marginBottom: '16px' }} 
-    />
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-        <Typography.Title level={2}>Danh sách Báo biểu</Typography.Title>
-        <Button type="primary" icon={<PlusOutlined />} onClick={showModal}>
-          Tạo báo biểu mới từ mẫu này
-        </Button>
-      </div>
-
-      <Table 
-        columns={columns} 
-        dataSource={data} 
-        rowKey="id"
-        loading={loading}
-        bordered
-      />
-
-      <Modal
-        title={`Tạo báo biểu mới cho mẫu: "${baseBaoBieuName}"`}
-        open={isModalOpen}
-        onOk={handleOk}
-        onCancel={handleCancel}
-        okText="Tạo"
-        cancelText="Hủy"
-      >
-        <Form form={form} layout="vertical" name="form_in_modal">
-          <Form.Item
-            name="tenBaoBieu"
-            label="Tên báo biểu mới"
-            rules={[{ required: true, message: 'Vui lòng nhập tên báo biểu!' }]}
+    <>
+      {contextHolder}
+      <div style={{ padding: '24px' }}>
+        {/* 2. Sử dụng prop 'items' để render Breadcrumb */}
+        <Breadcrumb
+          items={breadcrumbItems}
+          style={{ marginBottom: '16px' }}
+        />
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+          <Typography.Title level={2}>Danh sách Báo biểu</Typography.Title>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px', gap:'5px'}}>
+          <Button
+            icon={<RollbackOutlined />}
+            onClick={() => router.back()}
           >
-            <Input />
-          </Form.Item>
-        </Form>
-      </Modal>
-    </div>
+            Quay lại
+          </Button>
+          <Button type="primary" icon={<PlusOutlined />} onClick={showModal}>
+            Tạo báo biểu mới từ mẫu này
+          </Button>
+        </div>
+        </div>
+        
+
+
+        <Table
+          columns={columns}
+          dataSource={data}
+          rowKey="id"
+          loading={loading}
+          bordered
+        />
+
+        <Modal
+          title={`Tạo báo biểu mới cho mẫu: "${baseBaoBieuName}"`}
+          open={isModalOpen}
+          onOk={handleOk}
+          onCancel={handleCancel}
+          okText="Tạo"
+          cancelText="Hủy"
+        >
+          <Form form={form} layout="vertical" name="form_in_modal">
+            <Form.Item
+              name="tenBaoBieu"
+              label="Tên báo biểu mới"
+              rules={[{ required: true, message: 'Vui lòng nhập tên báo biểu!' }]}
+            >
+              <Input />
+            </Form.Item>
+          </Form>
+        </Modal>
+      </div>
+    </>
+
   );
 };
 

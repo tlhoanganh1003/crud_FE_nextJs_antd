@@ -4,7 +4,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { Table, Button, Space, Popconfirm, message, Typography } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import axios from 'axios';
-import {  EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
 
 
@@ -32,7 +32,7 @@ const QuanLyBaoBieu = () => {
   const [loading, setLoading] = useState<boolean>(true);
 
   const router = useRouter();
-
+  const [messageApi, contextHolder] = message.useMessage();
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -42,10 +42,11 @@ const QuanLyBaoBieu = () => {
       setData(response.data);
     } catch (error) {
       console.error('Lỗi khi tải danh sách báo biểu:', error);
-      message.error('Không thể tải danh sách báo biểu.');
+      messageApi.error('Không thể tải danh sách báo biểu.');
     } finally {
       setLoading(false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -59,11 +60,11 @@ const QuanLyBaoBieu = () => {
   const handleDelete = async (id: number) => {
     try {
       await axios.delete(`${API_BAOBIEU_URL}/${id}`);
-      message.success('Xóa báo biểu thành công!');
+      messageApi.success('Xóa báo biểu thành công!');
       fetchData(); // Tải lại dữ liệu
     } catch (error) {
       console.error('Lỗi khi xóa báo biểu:', error);
-      message.error('Không thể xóa báo biểu này.');
+      messageApi.error('Không thể xóa báo biểu này.');
     }
   };
 
@@ -112,20 +113,23 @@ const QuanLyBaoBieu = () => {
   ];
 
   return (
-    <div style={{ padding: '24px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-        <Typography.Title level={2}>Danh sách Báo biểu</Typography.Title>
+    <>
+      {contextHolder}
+      <div style={{ padding: '24px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+          <Typography.Title level={2}>Danh sách Báo biểu</Typography.Title>
 
+        </div>
+
+        <Table
+          columns={columns}
+          dataSource={data}
+          rowKey="id"
+          loading={loading}
+          bordered
+        />
       </div>
-
-      <Table 
-        columns={columns} 
-        dataSource={data} 
-        rowKey="id"
-        loading={loading}
-        bordered
-      />
-    </div>
+    </>
   );
 };
 

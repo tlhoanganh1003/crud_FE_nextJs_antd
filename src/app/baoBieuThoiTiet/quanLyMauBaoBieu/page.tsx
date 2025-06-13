@@ -6,7 +6,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { Table, Button, Space, Modal, Form, Input, Popconfirm, message, Typography } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import axios from 'axios';
-import { PlusOutlined, EditOutlined, DeleteOutlined, FileAddOutlined, FileOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, DeleteOutlined, FileAddOutlined, FileOutlined, RollbackOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
 
 // Định nghĩa kiểu dữ liệu cho BaseBaoBieu (phần response)
@@ -15,18 +15,19 @@ interface BaseBaoBieu {
   tenBaseBaoBieu: string;
   // baseContents không cần thiết cho màn hình danh sách, nhưng để đây cho đầy đủ
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  baseContents: any[]; 
+  baseContents: any[];
 }
 
 // Định nghĩa kiểu dữ liệu cho việc tạo mới
 interface CreateBaseBaoBieuValues {
-    tenBaseBaoBieu: string;
+  tenBaseBaoBieu: string;
 }
 
 const API_URL = 'http://localhost:5015/api/v1/base-bao-bieu';
 
 const QuanLyMauBaoBieuPage = () => {
   const [data, setData] = useState<BaseBaoBieu[]>([]);
+  const [messageApi, contextHolder] = message.useMessage();
   const [loading, setLoading] = useState<boolean>(true);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [form] = Form.useForm();
@@ -40,10 +41,11 @@ const QuanLyMauBaoBieuPage = () => {
       setData(response.data);
     } catch (error) {
       console.error('Lỗi khi tải danh sách mẫu báo biểu:', error);
-      message.error('Không thể tải danh sách mẫu báo biểu.');
+      messageApi.error('Không thể tải danh sách mẫu báo biểu.');
     } finally {
       setLoading(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -62,14 +64,14 @@ const QuanLyMauBaoBieuPage = () => {
       const payload: CreateBaseBaoBieuValues = {
         tenBaseBaoBieu: values.tenBaseBaoBieu,
       };
-      
+
       await axios.post('http://localhost:5015/api/v1/base-bao-bieu', payload);
-      message.success('Tạo mẫu báo biểu thành công!');
+      messageApi.success('Tạo mẫu báo biểu thành công!');
       setIsModalOpen(false);
       fetchData(); // Tải lại dữ liệu sau khi tạo thành công
     } catch (error) {
       console.error('Lỗi khi tạo mẫu báo biểu:', error);
-      message.error('Đã xảy ra lỗi trong quá trình tạo.');
+      messageApi.error('Đã xảy ra lỗi trong quá trình tạo.');
     }
   };
 
@@ -81,11 +83,11 @@ const QuanLyMauBaoBieuPage = () => {
   const handleDelete = async (id: number) => {
     try {
       await axios.delete(`http://localhost:5015/api/v1/base-bao-bieu/${id}`);
-      message.success('Xóa mẫu báo biểu thành công!');
+      messageApi.success('Xóa mẫu báo biểu thành công!');
       fetchData(); // Tải lại dữ liệu
     } catch (error) {
       console.error('Lỗi khi xóa mẫu báo biểu:', error);
-      message.error('Không thể xóa mẫu báo biểu. Có thể nó đang được sử dụng.');
+      messageApi.error('Không thể xóa mẫu báo biểu. Có thể nó đang được sử dụng.');
     }
   };
 
@@ -150,41 +152,53 @@ const QuanLyMauBaoBieuPage = () => {
   ];
 
   return (
-    <div style={{ padding: '24px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-        <Typography.Title level={2}>Quản lý Mẫu Báo biểu</Typography.Title>
-        <Button type="primary" icon={<PlusOutlined />} onClick={showModal}>
-          Tạo mẫu mới
-        </Button>
+    <>
+      {contextHolder}
+      <div style={{ padding: '24px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+          <Typography.Title level={2}>Quản lý Mẫu Báo biểu</Typography.Title>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px', gap:'2px'}}>
+            <Button
+              icon={<RollbackOutlined />}
+              onClick={() => router.back()}
+            >
+              Quay lại
+            </Button>
+            <Button type="primary" icon={<PlusOutlined />} onClick={showModal}>
+              Tạo mẫu mới
+            </Button>
+          </div>
+
+        </div>
+
+        <Table
+          columns={columns}
+          dataSource={data}
+          rowKey="id"
+          loading={loading}
+          bordered
+        />
+
+        <Modal
+          title="Tạo mẫu báo biểu mới"
+          open={isModalOpen}
+          onOk={handleOk}
+          onCancel={handleCancel}
+          okText="Tạo"
+          cancelText="Hủy"
+        >
+          <Form form={form} layout="vertical" name="form_in_modal">
+            <Form.Item
+              name="tenBaseBaoBieu"
+              label="Tên mẫu báo biểu"
+              rules={[{ required: true, message: 'Vui lòng nhập tên mẫu báo biểu!' }]}
+            >
+              <Input />
+            </Form.Item>
+          </Form>
+        </Modal>
       </div>
-
-      <Table 
-        columns={columns} 
-        dataSource={data} 
-        rowKey="id"
-        loading={loading}
-        bordered
-      />
-
-      <Modal
-        title="Tạo mẫu báo biểu mới"
-        open={isModalOpen}
-        onOk={handleOk}
-        onCancel={handleCancel}
-        okText="Tạo"
-        cancelText="Hủy"
-      >
-        <Form form={form} layout="vertical" name="form_in_modal">
-          <Form.Item
-            name="tenBaseBaoBieu"
-            label="Tên mẫu báo biểu"
-            rules={[{ required: true, message: 'Vui lòng nhập tên mẫu báo biểu!' }]}
-          >
-            <Input />
-          </Form.Item>
-        </Form>
-      </Modal>
-    </div>
+    </>
   );
 };
 

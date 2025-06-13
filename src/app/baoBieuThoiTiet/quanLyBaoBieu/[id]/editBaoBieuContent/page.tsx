@@ -6,6 +6,9 @@ import type { TabsProps } from 'antd';
 import axios from 'axios';
 import CustomEditor from '@/components/CustomEditor';
 import { exportToHtmlDoc } from '@/app/ultis/exportHelper';
+import { RollbackOutlined } from '@ant-design/icons';
+import { useRouter } from 'next/navigation';
+
 
 // Định nghĩa các kiểu dữ liệu để làm việc với TypeScript
 interface BaoBieuContent {
@@ -25,11 +28,12 @@ interface BaoBieu {
 const BaoBieuDetailPage = ({ params }: { params: Promise<{ id: string }> }) => {
   const resolvedParams = use(params);
   const baoBieuId = resolvedParams.id;
-
+  const [messageApi, contextHolder] = message.useMessage();
   const [baoBieu, setBaoBieu] = useState<BaoBieu | null>(null);
   const [originalBaoBieu, setOriginalBaoBieu] = useState<BaoBieu | null>(null); // Lưu trạng thái ban đầu để so sánh
   const [loading, setLoading] = useState<boolean>(true);
   const [saving, setSaving] = useState<boolean>(false);
+  const router = useRouter();
 
   // Hàm fetch dữ liệu
   const fetchData = useCallback(async () => {
@@ -46,13 +50,14 @@ const BaoBieuDetailPage = ({ params }: { params: Promise<{ id: string }> }) => {
 
       setBaoBieu(sortedData);
       setOriginalBaoBieu(JSON.parse(JSON.stringify(sortedData))); // Tạo một bản sao sâu (deep copy)
-      message.success('Tải dữ liệu báo biểu thành công!');
+      messageApi.success('Tải dữ liệu báo biểu thành công!');
     } catch (error) {
       console.error('Lỗi khi tải dữ liệu báo biểu:', error);
-      message.error('Không thể tải dữ liệu báo biểu.');
+      messageApi.error('Không thể tải dữ liệu báo biểu.');
     } finally {
       setLoading(false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [baoBieuId]);
 
   useEffect(() => {
@@ -75,7 +80,7 @@ const BaoBieuDetailPage = ({ params }: { params: Promise<{ id: string }> }) => {
   // Hàm xử lý khi nhấn nút lưu
   const handleSaveAll = async () => {
     if (!baoBieu || !originalBaoBieu) {
-      message.warning('Không có dữ liệu để lưu.');
+      messageApi.warning('Không có dữ liệu để lưu.');
       return;
     }
 
@@ -99,19 +104,19 @@ const BaoBieuDetailPage = ({ params }: { params: Promise<{ id: string }> }) => {
     });
 
     if (updatePromises.length === 0) {
-      message.info('Không có thay đổi nào để lưu.');
+      messageApi.info('Không có thay đổi nào để lưu.');
       setSaving(false);
       return;
     }
 
     try {
       await Promise.all(updatePromises);
-      message.success(`Đã lưu thành công ${updatePromises.length} thay đổi!`);
+      messageApi.success(`Đã lưu thành công ${updatePromises.length} thay đổi!`);
       // Sau khi lưu thành công, cập nhật lại trạng thái ban đầu
       setOriginalBaoBieu(JSON.parse(JSON.stringify(baoBieu)));
     } catch (error) {
       console.error('Lỗi khi lưu các thay đổi:', error);
-      message.error('Đã xảy ra lỗi trong quá trình lưu.');
+      messageApi.error('Đã xảy ra lỗi trong quá trình lưu.');
     } finally {
       setSaving(false);
     }
@@ -139,9 +144,20 @@ const BaoBieuDetailPage = ({ params }: { params: Promise<{ id: string }> }) => {
   }));
 
   return (
+    <>
+    {contextHolder}
     <div style={{ padding: '24px' }}>
       <Typography.Title level={2}>{baoBieu.tenBaoBieu}</Typography.Title>
       <Typography.Text type="secondary">Dựa trên mẫu: {baoBieu.tenBaseBaoBieu}</Typography.Text>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
+          <Button
+            icon={<RollbackOutlined />}
+            onClick={() => router.back()}
+          >
+            Quay lại
+          </Button>
+        </div>
+
 
       <Tabs defaultActiveKey="1" items={tabItems} style={{ marginTop: '16px' }} />
 
@@ -169,6 +185,7 @@ const BaoBieuDetailPage = ({ params }: { params: Promise<{ id: string }> }) => {
         📝 Tải về file Word (.doc)
       </Button>
     </div>
+    </>
   );
 };
 
