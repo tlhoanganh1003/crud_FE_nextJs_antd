@@ -1,5 +1,6 @@
 @import "tailwindcss";
 
+
 .ML__keyboard {
-  z-index: 10000; /* giúp bàn phím không bị ẩn */
+  z-index: 150000 !important;
 }

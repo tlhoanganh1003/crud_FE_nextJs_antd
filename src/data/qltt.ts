@@ -12,7 +12,7 @@ export const dataHtktSource: DataType[] = [
   },
   {
     key: '2',
-    htkt: '25^{\\circ}C',
+    htkt: '',
   },
   {
     key: '3',

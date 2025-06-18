@@ -24,23 +24,31 @@ const MathInput: React.FC<MathInputProps> = ({ value = '', onChange }) => {
 
     const mathField = document.createElement('math-field') as MathfieldElement;
 
+    // --- THAY ĐỔI Ở ĐÂY ---
+    // Đặt chế độ mặc định là 'text' để cho phép gõ khoảng trắng
+    // Chế độ 'math' (mặc định) sẽ dùng phím cách để điều hướng
+    mathField.smartMode = true;
+
+    // Bạn có thể bỏ dòng setAttribute này vì đã có defaultMode
+    // mathField.setAttribute('math-mode', 'text'); 
+
     // Chỉ set manual để tự kiểm soát keyboard
     mathField.setAttribute('virtual-keyboard-mode', 'manual');
-    mathField.setAttribute('virtual-keyboard-theme', 'material'); // theme tùy chọn
+    mathField.setAttribute('virtual-keyboard-theme', 'material');
     mathField.setAttribute('virtual-keyboard-sound', 'none');
-    mathField.setAttribute('math-mode', 'text');
 
     mathField.style.width = '100%';
     containerRef.current.appendChild(mathField);
     mathFieldRef.current = mathField;
 
     const setupCustomKeyboard = () => {
+      // ... code setup keyboard của bạn vẫn giữ nguyên ...
       const vk = (window as any).mathVirtualKeyboard;
       if (!vk) {
         console.warn('mathVirtualKeyboard không tồn tại');
         return;
       }
-
+      
       // Layouts: sao chép hoặc khởi tạo mảng mới nếu chưa có
       const layoutsCopy = Array.isArray(vk.layouts) ? [...vk.layouts] : [];
 
@@ -50,6 +58,8 @@ const MathInput: React.FC<MathInputProps> = ({ value = '', onChange }) => {
           label: 'Custom',
           rows: [
             [
+              // Thêm nút space vào đây nếu bạn muốn có một nút bấm riêng
+              // { label: '␣', insert: ' ', class: 'small' }, 
               { label: '⋅', insert: '\\cdot', class: 'small' },
               { label: '∈', insert: '\\in', class: 'small' },
               { label: '∉', insert: '\\notin', class: 'small' },
@@ -61,8 +71,8 @@ const MathInput: React.FC<MathInputProps> = ({ value = '', onChange }) => {
               { label: '⊂', insert: '\\subset', class: 'small' },
               { label: '⊃', insert: '\\supset', class: 'small' },
               { label: '⊆', insert: '\\subseteq', class: 'small' },
-              { label: '⊇', insert: '\\supseteq', class: 'small' },
-              { label: '∞', insert: '\\infty', class: 'small' },
+              { label: '⊇', 'insert': '\\supseteq', class: 'small' },
+              { label: '∞', 'insert': '\\infty', class: 'small' },
             ],
             [
               { label: '≠', insert: '\\neq', class: 'small' },
@@ -113,14 +123,11 @@ const MathInput: React.FC<MathInputProps> = ({ value = '', onChange }) => {
       vk.visible = true;
     };
 
-
-    // Mở keyboard + setup tab custom khi focus
     mathField.addEventListener('focus', () => {
       setupCustomKeyboard();
       (mathField as any).showVirtualKeyboard();
     });
 
-    // Đồng bộ dữ liệu lên onChange
     mathField.addEventListener('input', () => {
       const latex = mathField.getValue();
       onChange?.(latex);
@@ -129,10 +136,8 @@ const MathInput: React.FC<MathInputProps> = ({ value = '', onChange }) => {
     if (value) {
       mathField.setValue(value);
     }
-
   }, []);
 
-  // Cập nhật value khi props thay đổi
   useEffect(() => {
     if (mathFieldRef.current && value !== mathFieldRef.current.getValue()) {
       mathFieldRef.current.setValue(value ?? '');

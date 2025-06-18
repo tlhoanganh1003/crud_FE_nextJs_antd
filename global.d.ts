@@ -1,4 +1,3 @@
-// types/mathlive.d.ts
 import 'mathlive'; // Import để có MathfieldElement
 import type { MathfieldElement, MathfieldOptions } from 'mathlive';
 
@@ -16,6 +15,25 @@ declare global {
       >;
     }
   }
+}
+
+declare class MathfieldElement extends HTMLElement {
+  value: string;
+  defaultMode: 'math' | 'text';
+  virtualKeyboardMode: 'manual' | 'onfocus' | 'off';
+  showVirtualKeyboard(): void;
+  // Thêm các thuộc tính khác ở đây nếu cần trong tương lai
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+interface Window {
+  MathfieldElement: typeof MathfieldElement;
+  mathVirtualKeyboard?: {
+    visible: boolean;
+  };
+  activeMathField?: MathfieldElement;
+  currentLatexValue?: string;
+  reactMathRoot?: { unmount: () => void };
 }
 
 // Đảm bảo file này được coi là một module

@@ -2,7 +2,7 @@
 
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, use } from 'react';
 import { Button, Spin, message, Typography, Card } from 'antd';
 import { SaveOutlined, RollbackOutlined } from '@ant-design/icons';
 import axios from 'axios';
@@ -25,8 +25,9 @@ interface CreateBaseContentPayload {
 
 const API_BASE_URL = 'http://localhost:5015/api/v1/base-bao-bieu';
 
-const ThemBaseContentPage = ({ params }: { params: { id: string } }) => {
-  const baseBaoBieuId = params.id;
+const ThemBaseContentPage = ({ params }: { params: Promise<{ id: string }> }) => {
+  const resolvedParams = use(params);
+  const baseBaoBieuId = resolvedParams.id;
   const router = useRouter();
 
   const [messageApi, contextHolder] = message.useMessage();
@@ -49,7 +50,7 @@ const ThemBaseContentPage = ({ params }: { params: { id: string } }) => {
     } finally {
       setLoading(false);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [baseBaoBieuId]);
 
   useEffect(() => {
