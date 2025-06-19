@@ -1,3 +1,4 @@
+// file: CustomEditor.tsx
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createRoot } from 'react-dom/client'
 import React, { forwardRef, useImperativeHandle, useRef } from 'react';
@@ -57,7 +58,7 @@ async function loadSvgSymbols(editor: TinyMCEEditor) {
         svg.style.cursor = 'pointer'; svg.style.border = '1px solid #ccc'; svg.style.margin = '4px';
 
         Array.from(symbol.childNodes).forEach(child => svg.appendChild(child.cloneNode(true)));
-        svg.addEventListener('click', () => insertSvg(editor, symbol)); // Gọi hàm insertSvg đã sửa lỗi
+        svg.addEventListener('click', () => insertSvg(editor, symbol));
         list.appendChild(svg);
       });
     }, 100);
@@ -73,7 +74,6 @@ async function loadSvgSymbols(editor: TinyMCEEditor) {
 
 function insertSvg(editor: { insertContent: (arg0: string) => void; windowManager: { close: () => void; }; }, symbol: SVGSymbolElement) {
   const viewBox = symbol.getAttribute('viewBox');
-
 
   const svgEl = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svgEl.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
@@ -96,20 +96,16 @@ function insertSvg(editor: { insertContent: (arg0: string) => void; windowManage
   editor.windowManager.close();
 }
 
-// === HÀM MỚI: Mở Dialog để chỉnh sửa công thức ===
 
-
-
+// === HÀM ĐÃ ĐƯỢC SỬA LẠI: Mở Dialog để chỉnh sửa công thức ===
+// Logic đã được đơn giản hóa để xử lý đúng dữ liệu từ MathInput.
 function openMathEditorDialog(editor: TinyMCEEditor) {
   const selectedNode = editor.selection.getNode();
   const isEditing = selectedNode.nodeName === 'SPAN' && selectedNode.classList.contains('math-container');
   const initialLatex = isEditing ? selectedNode.getAttribute('data-latex') ?? '' : '';
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  interface MathDialogData { latexValue: string; }
-
-  // Sử dụng lại giải pháp dự phòng dùng `window` vì nó đã được chứng minh là đáng tin cậy nhất
-  // để truyền dữ liệu ra khỏi một htmlpanel.
+  // Sử dụng một biến tạm trên `window` để lưu trữ giá trị LaTeX từ component React bên trong dialog.
+  // Đây là một cách đáng tin cậy để giao tiếp giữa `htmlpanel` và dialog API của TinyMCE.
   (window as any).currentLatexValue = initialLatex;
 
   editor.windowManager.open({
@@ -122,27 +118,51 @@ function openMathEditorDialog(editor: TinyMCEEditor) {
       { type: 'cancel', text: 'Hủy' },
       { type: 'submit', text: 'Chèn', buttonType: 'primary' }
     ],
+    // Hàm này được gọi khi người dùng nhấn nút "Chèn"
     onSubmit: (api: Ui.Dialog.DialogInstanceApi<any>) => {
-      const latexValue = (window as any).currentLatexValue;
-      if (typeof latexValue === 'string' && latexValue.trim() !== '') {
-        const content = `<span class="math-container" contenteditable="false" data-latex="${latexValue}">\\(${latexValue}\\)</span> `;
-        if (isEditing) { editor.selection.select(selectedNode); }
-        editor.selection.setContent(content);
+      // Lấy giá trị LaTeX đã được "dọn dẹp" từ biến tạm.
+      const rawValue = (window as any).currentLatexValue;
+
+      if (typeof rawValue === 'string' && rawValue.trim() !== '') {
+        // GIẢI THÍCH LOGIC MỚI:
+        // MathInput luôn trả về một chuỗi LaTeX thuần túy, ví dụ: '\\frac{a}{b}' hoặc '\\wmosymbol{WW_01}'.
+        // Logic phân nhánh cũ (kiểm tra #html{...}) đã được loại bỏ vì nó không bao giờ được thực thi.
+        //
+        // Luồng xử lý luôn giống nhau cho mọi loại nội dung từ MathInput:
+        // 1. Lấy chuỗi LaTeX.
+        // 2. Bọc nó trong một thẻ <span> với các thuộc tính cần thiết (`data-latex`, `class`, `contenteditable`).
+        // 3. Đặt chuỗi LaTeX vào bên trong `\\(...\\)` để MathJax nhận diện và render.
+        //
+        // MathJax đã được cấu hình trong onInit để hiểu cả LaTeX tiêu chuẩn và macro `\wmosymbol` của chúng ta.
+        // Do đó, cách tiếp cận thống nhất này hoạt động cho cả công thức toán học và các ký hiệu thời tiết.
+
+        // Rất quan trọng: Escape dấu ngoặc kép trong chuỗi LaTeX để không làm hỏng thuộc tính HTML.
+        const escapedLatex = rawValue.replace(/"/g, '"');
+
+        const contentToInsert = `<span class="math-container" contenteditable="false" data-latex="${escapedLatex}">\\(${rawValue}\\)</span> `;
+
+        // Nếu đang sửa, hãy thay thế node cũ. Nếu không, chèn vào vị trí con trỏ.
+        if (isEditing) {
+          editor.selection.select(selectedNode);
+        }
+        editor.selection.setContent(contentToInsert);
       }
       api.close();
     },
     onClose: () => {
+      // Dọn dẹp component React và các biến tạm khi đóng dialog.
       if ((window as any).reactMathRoot) {
         (window as any).reactMathRoot.unmount();
         delete (window as any).reactMathRoot;
       }
       delete (window as any).currentLatexValue;
-      if ((window as any).mathVirtualKeyboard) {
-        (window as any).mathVirtualKeyboard.visible = false;
+      if (window.mathVirtualKeyboard) {
+        window.mathVirtualKeyboard.visible = false;
       }
     }
   });
 
+  // Render component MathInput vào dialog.
   setTimeout(() => {
     const container = document.getElementById('math-dialog-react-container');
     if (container) {
@@ -153,25 +173,17 @@ function openMathEditorDialog(editor: TinyMCEEditor) {
           <MathInput
             initialValue={initialLatex}
             onValueChange={(rawLatex: string) => {
-              // ==========================================================
-              // ĐÂY LÀ PHẦN "DỌN DẸP" QUAN TRỌNG
-              // ==========================================================
+              // Phần "dọn dẹp" này rất tốt và được giữ lại.
+              // Nó loại bỏ các dấu $ hoặc $$ mà MathLive có thể thêm vào.
               let cleanedLatex = rawLatex;
-
-              // Kiểm tra và loại bỏ cặp dấu $$ ở đầu và cuối
               if (cleanedLatex.startsWith('$$') && cleanedLatex.endsWith('$$')) {
                 cleanedLatex = cleanedLatex.substring(2, cleanedLatex.length - 2);
               }
-
-              // Kiểm tra và loại bỏ cặp dấu $ ở đầu và cuối
-              // (chạy sau $$ để không bị lỗi với trường hợp $$...$$)
               if (cleanedLatex.startsWith('$') && cleanedLatex.endsWith('$')) {
                 cleanedLatex = cleanedLatex.substring(1, cleanedLatex.length - 1);
               }
-              
-              // Chỉ lưu giá trị đã được "dọn dẹp" vào biến tạm
-              (window as any).currentLatexValue = cleanedLatex;
-              // ==========================================================
+              // Lưu giá trị đã được "dọn dẹp" và cắt bỏ khoảng trắng thừa.
+              (window as any).currentLatexValue = cleanedLatex.trim();
             }}
           />
         </React.StrictMode>
@@ -179,7 +191,6 @@ function openMathEditorDialog(editor: TinyMCEEditor) {
     }
   }, 100);
 }
-
 
 
 const CustomEditor = forwardRef<CustomEditorHandle, CustomEditorProps>(
@@ -240,7 +251,6 @@ const CustomEditor = forwardRef<CustomEditorHandle, CustomEditorProps>(
       entity_encoding: 'raw' as any,
       entities: '160,nbsp',
       verify_html: false,
-      // Rất quan trọng: cho phép span có thuộc tính contenteditable
       extended_valid_elements: 'span[class|contenteditable|data-latex],svg[*],use[*],path[*],circle[*],rect[*],line[*],g[*]',
       content_style: `
         .math-container {
@@ -254,27 +264,23 @@ const CustomEditor = forwardRef<CustomEditorHandle, CustomEditorProps>(
         }
         body { font-family:Helvetica,Arial,sans-serif; font-size:14pt }
       `,
-      // file: CustomEditor.tsx
 
       setup: function (editor: TinyMCEEditor) {
-        // CHỈ GIỮ LẠI NÚT NÀY. Các nút khác đã bị xóa.
         editor.ui.registry.addButton('mathbutton', {
           icon: 'formula',
-          tooltip: 'Chèn/Sửa công thức',
+          tooltip: 'Chèn/Sửa công thức hoặc ký hiệu',
           onAction: function () {
-            // Hàm này chỉ có một nhiệm vụ: mở dialog.
             openMathEditorDialog(editor);
           }
         });
         editor.ui.registry.addButton('customsvg', {
           text: 'WMO',
-          tooltip: 'Chèn ký hiệu thời tiết',
+          tooltip: 'Chèn ký hiệu thời tiết (dạng SVG trực tiếp)',
           onAction: function () {
             loadSvgSymbols(editor);
           }
         })
 
-        // Sự kiện double click để sửa công thức (vẫn rất hữu ích)
         editor.on('dblclick', function (e) {
           const target = e.target as HTMLElement;
           if (target.nodeName === 'SPAN' && target.classList.contains('math-container')) {
@@ -286,11 +292,6 @@ const CustomEditor = forwardRef<CustomEditorHandle, CustomEditorProps>(
 
     };
 
-
-
-
-    // Trong component CustomEditor của bạn
-
     return (
       <>
         <h3>📝 TinyMCE React - Chèn ký hiệu thời tiết WMO</h3>
@@ -298,13 +299,9 @@ const CustomEditor = forwardRef<CustomEditorHandle, CustomEditorProps>(
           apiKey='70336sddggwtrn1w5yrff3pushljb0zaqufgjhosjcxxvynk'
           init={editorConfig}
           value={initialValue}
-          // CHANGED: Lấy đối tượng `editor` từ callback
           onEditorChange={(content, editor) => {
             onChange?.(content);
-
-            // 👇 Đảm bảo MathJax typeset một cách an toàn và nhất quán
             setTimeout(() => {
-              // Dùng đối tượng `editor` được cung cấp sẵn
               const iframeWin = editor.getDoc().defaultView as any;
               if (iframeWin?.MathJax?.typesetPromise) {
                 iframeWin.MathJax.typesetPromise();
@@ -313,45 +310,81 @@ const CustomEditor = forwardRef<CustomEditorHandle, CustomEditorProps>(
           }}
           onInit={(evt, editor) => {
             editorRef.current = editor;
-
-            // 👇 Dùng editor.getDoc() để truy cập iframe một cách an toàn.
-            // Đây là "source of truth" duy nhất.
             const doc = editor.getDoc();
 
-            // Kiểm tra xem `doc` và `doc.head` có tồn tại không.
-            // Đây là cách xử lý an toàn cho các giá trị có thể là null.
             if (doc && doc.head) {
               if (!doc.getElementById('mathjax-script')) {
-                // Tất cả các thao tác đều dựa trên `doc`, không dùng `iframe` nữa.
+                fetch('/symbols.svg')
+                  .then(res => res.text())
+                  .then(text => {
+                    const parser = new DOMParser();
+                    const svgDoc = parser.parseFromString(text, 'image/svg+xml');
+                    const symbols = svgDoc.querySelectorAll('symbol');
+                    let cssRules = '';
+
+                    symbols.forEach(symbol => {
+                      const originalSymbolId = symbol.id;
+                      if (originalSymbolId) {
+                        // ----- THAY ĐỔI QUAN TRỌNG -----
+                        // Đồng bộ hóa việc thay thế '_' bằng '-' khi tạo class CSS.
+                        const safeSymbolId = originalSymbolId.replace(/_/g, '-');
+                        // ----- KẾT THÚC THAY ĐỔI -----
+
+                        const svgEl = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                        svgEl.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+                        svgEl.setAttribute('viewBox', symbol.getAttribute('viewBox') ?? '0 0 24 24');
+                        svgEl.innerHTML = symbol.innerHTML;
+
+                        const dataUri = 'data:image/svg+xml;base64,' + btoa(svgEl.outerHTML);
+
+                        // Sử dụng ID an toàn để tạo tên class
+                        cssRules += `
+                          .wmo-symbol-${safeSymbolId}::before {
+                            content: '';
+                            display: inline-block;
+                            width: 1.2em;
+                            height: 1.2em;
+                            vertical-align: -0.2em;
+                            background-color: currentColor;
+                            -webkit-mask-image: url("${dataUri}");
+                            mask-image: url("${dataUri}");
+                            -webkit-mask-size: contain;
+                            mask-size: contain;
+                            -webkit-mask-repeat: no-repeat;
+                            mask-repeat: no-repeat;
+                            -webkit-mask-position: center;
+                            mask-position: center;
+                          }
+                        `;
+                      }
+                    });
+
+                    if (cssRules) {
+                      const styleEl = doc.createElement('style');
+                      styleEl.id = 'wmo-symbols-style';
+                      styleEl.innerHTML = cssRules;
+                      doc.head.appendChild(styleEl);
+                    }
+                  }).catch(err => console.error("Lỗi nghiêm trọng khi xử lý SVG để tạo CSS:", err));
+
+                // Cấu hình MathJax không cần thay đổi, vì macro `wmosymbol` chỉ đơn giản
+                // là nhận một chuỗi và dùng nó để tạo tên class.
                 const config = doc.createElement('script');
                 config.type = 'text/javascript';
                 config.innerHTML = `
-  window.MathJax = {
-    tex: {
-      // ==========================================================
-      // ĐÂY LÀ THAY ĐỔI QUAN TRỌNG NHẤT
-      //
-      // Chỉ cho phép MỘT loại cú pháp inline mà chúng ta tạo ra.
-      // Xóa bỏ hoàn toàn quy tắc ['$', '$'].
-      inlineMath: [['\\\\(', '\\\\)']], 
-      
-      // Giữ lại cú pháp display math nếu bạn cần
-      displayMath: [['\\\\[', '\\\\]']],
-      // ==========================================================
-
-      // Tắt các bộ lọc "thông minh" có thể gây ra vấn đề
-      processEscapes: true 
-    },
-    svg: {
-      // Cấu hình này giúp tăng hiệu suất
-      fontCache: 'global'
-    },
-    startup: {
-      // Cho phép MathJax tự chạy khi tải xong
-      typeset: true
-    }
-  };
-`;
+                  window.MathJax = {
+                    tex: {
+                      inlineMath: [['\\\\(', '\\\\)']], 
+                      displayMath: [['\\\\[', '\\\\]']],
+                      processEscapes: true,
+                      macros: {
+                        wmosymbol: ['\\\\class{wmo-symbol wmo-symbol-#1}{\\\\phantom{W}}', 1]
+                      }
+                    },
+                    svg: { fontCache: 'global' },
+                    startup: { typeset: true }
+                  };
+                `;
 
                 const script = doc.createElement('script');
                 script.id = 'mathjax-script';
@@ -359,7 +392,6 @@ const CustomEditor = forwardRef<CustomEditorHandle, CustomEditorProps>(
                 script.src = 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
                 script.async = true;
 
-                // Thêm vào head của document trong iframe
                 doc.head.appendChild(config);
                 doc.head.appendChild(script);
               }
@@ -373,7 +405,3 @@ const CustomEditor = forwardRef<CustomEditorHandle, CustomEditorProps>(
 
 CustomEditor.displayName = 'CustomEditor';
 export default CustomEditor;
-
-
-
-

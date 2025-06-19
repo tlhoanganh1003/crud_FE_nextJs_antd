@@ -1,6 +1,7 @@
 // types/mathlive.d.ts
 
 import 'mathlive';
+import 'react';
 import type {
   MathfieldElement,
   MathfieldOptions as OriginalMathfieldOptions,
@@ -8,6 +9,7 @@ import type {
   VirtualKeyboardLayout,
   VirtualKeyboardLayer,
 } from 'mathlive';
+import type { MathfieldElementAttributes as OriginalMathfieldElementAttributes } from 'mathlive';
 
 declare module 'mathlive' {
   interface MathfieldOptions extends OriginalMathfieldOptions {
@@ -47,5 +49,21 @@ declare global {
 
   interface Window {
     mathVirtualKeyboard?: VirtualKeyboardInterface;
+  }
+}
+
+
+type OptionalMathfieldElementAttributes = Partial<OriginalMathfieldElementAttributes> & 
+                                          React.ClassAttributes<HTMLElement> & 
+                                          React.HTMLAttributes<HTMLElement>;
+
+// Sử dụng cú pháp module ES2015 để mở rộng (augment) module 'react'
+declare module 'react' {
+  namespace JSX {
+    // Thêm 'math-field' vào danh sách các element mà JSX hiểu,
+    // nhưng sử dụng kiểu "nới lỏng" của chúng ta.
+    interface IntrinsicElements {
+      'math-field': OptionalMathfieldElementAttributes;
+    }
   }
 }

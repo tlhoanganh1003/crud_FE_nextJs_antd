@@ -4,3 +4,10 @@
 .ML__keyboard {
   z-index: 150000 !important;
 }
+
+.ML__keyboard .ML__layer {
+  /* Đặt chiều cao tối đa, ví dụ 300px. Bạn có thể điều chỉnh con số này. */
+  max-height: 300px;
+  /* Cho phép thanh cuộn dọc xuất hiện nếu nội dung vượt quá chiều cao */
+  overflow-y: auto;
+}
