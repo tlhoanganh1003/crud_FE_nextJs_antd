@@ -70,7 +70,7 @@ const MathInput: React.FC<MathInputProps> = ({ initialValue = '', onValueChange 
         const vk = (window as any).mathVirtualKeyboard;
         if (!vk) return;
         
-        const BUTTONS_PER_PAGE = 24; // Mỗi tab có tối đa 24 biểu tượng
+        const BUTTONS_PER_PAGE = 60; // Mỗi tab có tối đa 24 biểu tượng
         const totalPages = Math.ceil(allSvgButtons.length / BUTTONS_PER_PAGE);
         const newLayouts = [];
 
@@ -80,7 +80,7 @@ const MathInput: React.FC<MathInputProps> = ({ initialValue = '', onValueChange 
           const pageButtons = allSvgButtons.slice(startIndex, endIndex);
 
           const rows = [];
-          const BUTTONS_PER_ROW = 6;
+          const BUTTONS_PER_ROW = 15;
           for (let i = 0; i < pageButtons.length; i += BUTTONS_PER_ROW) {
             rows.push(pageButtons.slice(i, i + BUTTONS_PER_ROW));
           }
@@ -105,7 +105,7 @@ const MathInput: React.FC<MathInputProps> = ({ initialValue = '', onValueChange 
     setupCustomKeyboardWithPagination();
 
     mathField.style.width = '100%';
-    mathField.style.minHeight = '200px';
+    mathField.style.minHeight = '50px';
     (mathField as any).defaultMode = 'math';
     (mathField as any).virtualKeyboardMode = 'manual';
     

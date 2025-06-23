@@ -308,7 +308,7 @@ const CustomEditor = forwardRef<CustomEditorHandle, CustomEditorProps>(
               }
             }, 100);
           }}
-          onInit={(evt, editor) => {
+         onInit={(evt, editor) => {
             editorRef.current = editor;
             const doc = editor.getDoc();
 
@@ -325,37 +325,54 @@ const CustomEditor = forwardRef<CustomEditorHandle, CustomEditorProps>(
                     symbols.forEach(symbol => {
                       const originalSymbolId = symbol.id;
                       if (originalSymbolId) {
-                        // ----- THAY ĐỔI QUAN TRỌNG -----
-                        // Đồng bộ hóa việc thay thế '_' bằng '-' khi tạo class CSS.
                         const safeSymbolId = originalSymbolId.replace(/_/g, '-');
-                        // ----- KẾT THÚC THAY ĐỔI -----
+                        
+                        // ----- BẮT ĐẦU CSS TINH CHỈNH -----
+                        const viewBox = symbol.getAttribute('viewBox');
+                        let aspectRatio = '1 / 1'; // Mặc định là hình vuông
+                        if (viewBox) {
+                          const parts = viewBox.split(' ');
+                          if (parts.length === 4) {
+                            const w = parseFloat(parts[2]);
+                            const h = parseFloat(parts[3]);
+                            if (w > 0 && h > 0) {
+                              aspectRatio = `${w} / ${h}`;
+                            }
+                          }
+                        }
 
+                        // Tạo SVG hoàn chỉnh từ symbol, đảm bảo nó có thể đổi màu
                         const svgEl = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
                         svgEl.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-                        svgEl.setAttribute('viewBox', symbol.getAttribute('viewBox') ?? '0 0 24 24');
+                        if (viewBox) svgEl.setAttribute('viewBox', viewBox);
+                        // QUAN TRỌNG: Đặt fill="currentColor" để SVG nhận màu từ text
+                        svgEl.setAttribute('fill', 'currentColor'); 
                         svgEl.innerHTML = symbol.innerHTML;
 
                         const dataUri = 'data:image/svg+xml;base64,' + btoa(svgEl.outerHTML);
 
-                        // Sử dụng ID an toàn để tạo tên class
+                        // Quy tắc CSS mới, chính xác hơn
                         cssRules += `
-                          .wmo-symbol-${safeSymbolId}::before {
-                            content: '';
+                          .wmo-symbol-${safeSymbolId} {
+                            /* Bỏ qua nội dung của \phantom{W} */
                             display: inline-block;
-                            width: 1.2em;
-                            height: 1.2em;
-                            vertical-align: -0.2em;
-                            background-color: currentColor;
-                            -webkit-mask-image: url("${dataUri}");
-                            mask-image: url("${dataUri}");
-                            -webkit-mask-size: contain;
-                            mask-size: contain;
-                            -webkit-mask-repeat: no-repeat;
-                            mask-repeat: no-repeat;
-                            -webkit-mask-position: center;
-                            mask-position: center;
+                            text-indent: -9999px; /* Ẩn chữ 'W' của phantom đi */
+                            
+                            /* Kích thước và tỷ lệ */
+                            width: 1.3em; /* Có thể điều chỉnh giá trị này */
+                            aspect-ratio: ${aspectRatio};
+                            
+                            /* Căn chỉnh theo chiều dọc */
+                            vertical-align: middle; /* Điều chỉnh để thẳng hàng với văn bản */
+
+                            /* Thay thế mask bằng background để kiểm soát tốt hơn */
+                            background-image: url("${dataUri}");
+                            background-repeat: no-repeat;
+                            background-position: center;
+                            background-size: contain;
                           }
                         `;
+                        // ----- KẾT THÚC CSS TINH CHỈNH -----
                       }
                     });
 
